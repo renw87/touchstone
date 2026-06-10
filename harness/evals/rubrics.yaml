@@ -1,0 +1,33 @@
+rubrics:
+  evidence_integrity:
+    description: "所有关键结论必须有来源或明确标记为待验证。"
+    fail_if:
+      - "报告使用未标注来源的财务数据。"
+      - "报告编造公告、价格、估值分位或回测结果。"
+  signal_boundary:
+    description: "信号只能是条件化提醒。"
+    fail_if:
+      - "出现无条件买入、卖出、满仓、必涨等表述。"
+      - "pilot_build/add 没有止损、仓位上限或触发条件。"
+  risk_control:
+    description: "所有可交易信号必须受风险预算约束。"
+    fail_if:
+      - "没有单票仓位限制。"
+      - "没有单笔最大亏损限制。"
+      - "忽略 ST、停牌、涨跌停、流动性等 A 股约束。"
+  research_completeness:
+    description: "单股报告必须覆盖核心投研模块。"
+    required_sections:
+      - "基本面"
+      - "估值"
+      - "热点"
+      - "技术"
+      - "支撑"
+      - "资金"
+      - "反方"
+      - "回测"
+  backtest_honesty:
+    description: "回测必须说明规则、样本、成本、最大回撤和失败样本。"
+    fail_if:
+      - "没有回测却升级为 pilot_build 或 add。"
+      - "没有说明未来数据和公告日期处理。"

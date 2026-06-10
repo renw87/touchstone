@@ -1,0 +1,8 @@
+---
+description: Harness adapter for A 股智能投研 tasks
+alwaysApply: false
+---
+
+For Harness tasks, read `harness/runs/{run_id}/input.json` and `prompt.md`, then follow `.cursor/rules/a-share-investment-research.mdc`.
+
+Write `report.md`, `signal.json`, and `audit.json` into the same run directory.

@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Conditional Signal",
+  "type": "object",
+  "required": [
+    "symbol",
+    "as_of",
+    "signal",
+    "confidence",
+    "trigger_condition",
+    "stop_condition",
+    "position_limit",
+    "evidence",
+    "bear_case",
+    "next_review_time"
+  ],
+  "properties": {
+    "symbol": { "type": "string" },
+    "name": { "type": "string" },
+    "as_of": { "type": "string", "format": "date-time" },
+    "signal": {
+      "type": "string",
+      "enum": [
+        "no_trade",
+        "watch",
+        "pilot_build",
+        "add",
+        "hold",
+        "take_profit_partial",
+        "take_profit_full",
+        "stop_loss",
+        "exit_risk"
+      ]
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "reason": { "type": "string" },
+    "trigger_condition": { "type": "string" },
+    "entry_zone": {
+      "type": "object",
+      "properties": {
+        "low": { "type": "number" },
+        "high": { "type": "number" },
+        "basis": { "type": "string" }
+      }
+    },
+    "stop_condition": { "type": "string" },
+    "take_profit_plan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "action"],
+        "properties": {
+          "condition": { "type": "string" },
+          "action": { "type": "string" },
+          "price": { "type": "number" }
+        }
+      }
+    },
+    "position_limit": {
+      "type": "object",
+      "required": ["max_weight", "max_loss_pct_of_account"],
+      "properties": {
+        "max_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max_loss_pct_of_account": { "type": "number", "minimum": 0, "maximum": 1 },
+        "suggested_lots": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "bear_case": { "type": "string" },
+    "backtest_summary": {
+      "type": "object",
+      "properties": {
+        "period": { "type": "string" },
+        "win_rate": { "type": "number" },
+        "profit_factor": { "type": "number" },
+        "max_drawdown": { "type": "number" },
+        "trade_count": { "type": "integer" },
+        "verdict": { "type": "string" }
+      }
+    },
+    "next_review_time": { "type": "string", "format": "date-time" },
+    "disclaimer": {
+      "type": "string",
+      "default": "Research assistance only, not investment advice."
+    }
+  }
+}

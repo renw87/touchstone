@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Harness Run Record",
+  "type": "object",
+  "required": ["run_id", "created_at", "input", "outputs", "status"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "input": { "type": "string" },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "report": { "type": "string" },
+        "signal": { "type": "string" },
+        "audit": { "type": "string" }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["created", "running", "completed", "failed", "needs_review"]
+    },
+    "runtime_adapter": {
+      "type": "string",
+      "enum": ["codex", "claude-code", "cursor", "local"]
+    }
+  }
+}

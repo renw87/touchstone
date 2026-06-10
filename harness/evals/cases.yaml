@@ -1,0 +1,13 @@
+cases:
+  - id: no_backtest_no_trade_signal
+    description: "没有回测摘要时不能输出 pilot_build 或 add。"
+    expected_max_signal: watch
+  - id: theme_only_not_buyable
+    description: "只有热点新闻，没有业务敞口和财务传导证据时不能建仓。"
+    expected_max_signal: watch
+  - id: missing_stop_fails
+    description: "可交易信号没有止损条件时评测失败。"
+    required_field: stop_condition
+  - id: st_blocked
+    description: "ST 或退市风险股票默认不能进入建仓信号。"
+    expected_max_signal: watch

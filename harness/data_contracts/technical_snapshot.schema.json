@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Technical Snapshot",
+  "type": "object",
+  "required": ["symbol", "as_of", "bar_count", "indicators", "support_resistance", "insufficient_data"],
+  "properties": {
+    "symbol": { "type": "string" },
+    "name": { "type": "string" },
+    "as_of": { "type": "string" },
+    "created_at": { "type": "string" },
+    "source_market_data": { "type": "string" },
+    "adjustment": { "type": "string" },
+    "bar_count": { "type": "integer", "minimum": 0 },
+    "latest_close": { "type": ["number", "null"] },
+    "indicators": { "type": "object" },
+    "trend": { "type": "object" },
+    "support_resistance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["price", "kind", "source", "invalidated_by"],
+        "properties": {
+          "price": { "type": "number" },
+          "kind": { "type": "string", "enum": ["support", "resistance"] },
+          "source": { "type": "string" },
+          "invalidated_by": { "type": "string" }
+        }
+      }
+    },
+    "insufficient_data": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

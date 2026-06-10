@@ -1,0 +1,36 @@
+task_id: single_stock_research
+task_type: research
+description: "针对指定 A 股输出完整动态投研报告和条件化信号。"
+skill:
+  plugin: "."
+  name: "a-share-investment-research"
+required_inputs:
+  - symbol
+  - name
+  - horizon
+  - risk_style
+  - account
+  - current_position
+  - data_context
+required_outputs:
+  - report.md
+  - signal.json
+  - audit.json
+analysis_blocks:
+  - data_quality
+  - fundamentals
+  - fundamental_score
+  - valuation
+  - valuation_score
+  - theme_industry_chain
+  - theme_chain
+  - technicals
+  - support_resistance
+  - capital_flow
+  - lhb
+  - bear_case
+  - backtest_summary
+  - parameter_scan
+  - signal_orchestration
+  - conditional_alert
+max_signal_without_backtest: watch

@@ -1,0 +1,8 @@
+interface:
+  display_name: "A 股智能投研"
+  short_description: "A 股证据化投研和条件提醒"
+  brand_color: "#B91C1C"
+  default_prompt: "Use $a-share-investment-research to analyze an A-share stock and produce a full report plus conditional signal."
+
+policy:
+  allow_implicit_invocation: true

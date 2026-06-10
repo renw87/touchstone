@@ -1,0 +1,34 @@
+schedule:
+  pre_market: "09:00"
+  intraday_checks:
+    - "10:30"
+    - "14:30"
+  post_market: "16:30"
+  weekly_review: "Saturday 10:00"
+  earnings_review: on_report_publish
+
+signals:
+  pilot_build:
+    min_total_score: 26
+    min_fundamental_score: 3
+    min_risk_score: 3
+    min_backtest_score: 3
+    max_position_fraction_of_single_stock_limit: 0.33
+  add:
+    min_total_score: 30
+    require_existing_profit: true
+    require_new_evidence: true
+  take_profit_partial:
+    min_reward_r_multiple: 1.5
+    allow_on_volume_exhaustion: true
+    allow_on_valuation_high_percentile: true
+  stop_loss:
+    require_hard_stop: true
+    allow_close_confirm: true
+
+risk:
+  block_st: true
+  block_suspended: true
+  block_major_violation: true
+  block_limit_up_chase: true
+  block_low_liquidity: true

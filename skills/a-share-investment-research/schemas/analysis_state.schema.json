@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Analysis State",
+  "type": "object",
+  "required": ["symbol", "as_of", "data_status", "scores", "evidence", "risks", "last_signal"],
+  "properties": {
+    "symbol": { "type": "string" },
+    "name": { "type": "string" },
+    "as_of": { "type": "string" },
+    "horizon": {
+      "type": "string",
+      "enum": ["short", "swing", "medium", "long"]
+    },
+    "data_status": {
+      "type": "object",
+      "required": ["complete", "insufficient_data"],
+      "properties": {
+        "complete": { "type": "boolean" },
+        "insufficient_data": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "as_of"],
+            "properties": {
+              "name": { "type": "string" },
+              "as_of": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "required": ["fundamental", "valuation", "theme", "technical", "flow", "risk", "backtest"],
+      "properties": {
+        "fundamental": { "type": "number", "minimum": 0, "maximum": 5 },
+        "valuation": { "type": "number", "minimum": 0, "maximum": 5 },
+        "theme": { "type": "number", "minimum": 0, "maximum": 5 },
+        "technical": { "type": "number", "minimum": 0, "maximum": 5 },
+        "flow": { "type": "number", "minimum": 0, "maximum": 5 },
+        "risk": { "type": "number", "minimum": 0, "maximum": 5 },
+        "backtest": { "type": "number", "minimum": 0, "maximum": 5 }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "source", "published_at", "strength", "direction"],
+        "properties": {
+          "claim": { "type": "string" },
+          "source": { "type": "string" },
+          "url": { "type": "string" },
+          "published_at": { "type": "string" },
+          "strength": { "type": "string", "enum": ["low", "medium", "high"] },
+          "direction": { "type": "string", "enum": ["support", "oppose", "neutral"] }
+        }
+      }
+    },
+    "support_resistance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["price", "kind", "source", "invalidated_by"],
+        "properties": {
+          "price": { "type": "number" },
+          "kind": { "type": "string", "enum": ["support", "resistance"] },
+          "source": { "type": "string" },
+          "invalidated_by": { "type": "string" }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["risk", "severity", "mitigation"],
+        "properties": {
+          "risk": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "mitigation": { "type": "string" }
+        }
+      }
+    },
+    "last_signal": { "$ref": "signal.schema.json" },
+    "next_review_time": { "type": "string" }
+  }
+}

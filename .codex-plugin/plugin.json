@@ -1,0 +1,20 @@
+{
+  "name": "touchstone",
+  "version": "0.1.0",
+  "description": "Touchstone: A-share investment research skills for evidence-based stock analysis, risk control, and conditional trading alerts.",
+  "author": {
+    "name": "Trading Workspace"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Touchstone · A 股智能投研",
+    "shortDescription": "A 股证据化投研和条件化交易提醒。",
+    "longDescription": "Touchstone 面向 Codex、Claude Code、Cursor 等智能体的 A 股投研插件，提供基本面、估值、热点产业链、技术面、资金、反方报告、回测和风控信号链路。",
+    "developerName": "Trading Workspace",
+    "category": "Productivity",
+    "capabilities": [
+      "skills"
+    ],
+    "defaultPrompt": "使用 Touchstone（A 股智能投研 Skill）分析一只股票，输出完整报告和条件化提醒。"
+  }
+}

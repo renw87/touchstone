@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research Audit",
+  "type": "object",
+  "required": [
+    "skill_used",
+    "references_used",
+    "data_sources",
+    "insufficient_data",
+    "no_trade_gates",
+    "has_bear_case",
+    "has_backtest_summary",
+    "signal_boundary_ok",
+    "next_review_time"
+  ],
+  "properties": {
+    "skill_used": { "type": "string" },
+    "references_used": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "data_sources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "insufficient_data": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "no_trade_gates": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "has_bear_case": { "type": "boolean" },
+    "has_backtest_summary": { "type": "boolean" },
+    "signal_boundary_ok": { "type": "boolean" },
+    "next_review_time": { "type": "string" }
+  }
+}

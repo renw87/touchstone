@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Valuation Score",
+  "type": "object",
+  "required": ["symbol", "scores", "metrics", "components", "evidence", "insufficient_data", "verdict"],
+  "properties": {
+    "symbol": { "type": ["string", "null"] },
+    "name": { "type": ["string", "null"] },
+    "created_at": { "type": "string" },
+    "sources": { "type": "object" },
+    "latest_report_period": { "type": "string" },
+    "metrics": { "type": "object" },
+    "scores": {
+      "type": "object",
+      "required": ["valuation", "risk"],
+      "properties": {
+        "valuation": { "type": "number", "minimum": 0, "maximum": 5 },
+        "risk": { "type": "number", "minimum": 0, "maximum": 5 }
+      }
+    },
+    "components": { "type": "array" },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "insufficient_data": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "verdict": { "type": "string" }
+  }
+}

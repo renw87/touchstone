@@ -1,0 +1,34 @@
+user_profile:
+  risk_style: balanced
+  account_equity: 100000
+  max_single_stock_weight: 0.15
+  max_industry_weight: 0.30
+  risk_per_trade: 0.01
+  min_daily_amount_cny: 100000000
+  investment_horizon: swing
+
+portfolio:
+  positions:
+    - symbol: "600519.SH"
+      name: "贵州茅台"
+      shares: 0
+      cost_price: null
+      target_weight: 0.05
+
+watchlist:
+  - symbol: "600519.SH"
+    name: "贵州茅台"
+    thesis: "高质量消费龙头，关注估值回落后的中线机会"
+    horizon: medium
+    priority: high
+  - symbol: "300750.SZ"
+    name: "宁德时代"
+    thesis: "新能源产业链龙头，关注行业景气和海外订单"
+    horizon: swing
+    priority: medium
+
+blocked:
+  allow_st: false
+  allow_suspended: false
+  allow_low_liquidity: false
+  allow_no_financial_data: false

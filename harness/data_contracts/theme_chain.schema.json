@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Theme Chain",
+  "type": "object",
+  "required": ["symbol", "themes", "industry_chain", "scores", "components", "evidence", "insufficient_data", "verdict"],
+  "properties": {
+    "symbol": { "type": ["string", "null"] },
+    "name": { "type": ["string", "null"] },
+    "created_at": { "type": "string" },
+    "sources": { "type": "object" },
+    "themes": { "type": "array" },
+    "industry_chain": { "type": "array" },
+    "scores": {
+      "type": "object",
+      "required": ["theme", "risk"],
+      "properties": {
+        "theme": { "type": "number", "minimum": 0, "maximum": 5 },
+        "risk": { "type": "number", "minimum": 0, "maximum": 5 }
+      }
+    },
+    "components": { "type": "array" },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "insufficient_data": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "verdict": { "type": "string" }
+  }
+}

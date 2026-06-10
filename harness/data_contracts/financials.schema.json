@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Financials",
+  "type": "object",
+  "required": ["symbol", "reports"],
+  "properties": {
+    "symbol": { "type": "string" },
+    "reports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["report_period", "publish_date"],
+        "properties": {
+          "report_period": { "type": "string" },
+          "publish_date": { "type": "string" },
+          "revenue": { "type": ["number", "null"] },
+          "net_profit_parent": { "type": ["number", "null"] },
+          "net_profit_excl_nonrecurring": { "type": ["number", "null"] },
+          "operating_cash_flow": { "type": ["number", "null"] },
+          "gross_margin": { "type": ["number", "null"] },
+          "net_margin": { "type": ["number", "null"] },
+          "roe": { "type": ["number", "null"] },
+          "debt_to_asset": { "type": ["number", "null"] },
+          "accounts_receivable": { "type": ["number", "null"] },
+          "inventory": { "type": ["number", "null"] },
+          "goodwill": { "type": ["number", "null"] }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+task_id: post_market_review
+task_type: review
+description: "盘后更新行情、成交、资金、行业相对强弱和信号变化。"
+skill:
+  plugin: "."
+  name: "a-share-investment-research"
+required_inputs:
+  - watchlist
+  - user_profile
+  - previous_signals
+required_outputs:
+  - post_market_report.md
+  - review_log.json
+rules:
+  update:
+    - close_price
+    - amount
+    - turnover
+    - support_resistance
+    - capital_flow
+    - trigger_result
+  answer:
+    - "新增证据是什么？"
+    - "原结论是否改变？"
+    - "触发条件是否更近或失效？"
+    - "仓位是否仍在风险预算内？"

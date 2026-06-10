@@ -1,0 +1,28 @@
+task_id: backtest_signal
+task_type: backtest
+description: "把投研观点转成可测试规则，并输出回测摘要。"
+skill:
+  plugin: "."
+  name: "a-share-investment-research"
+required_inputs:
+  - symbol
+  - rule_definition
+  - sample_period
+  - adjustment_mode
+  - cost_model
+required_outputs:
+  - backtest_report.md
+  - backtest_summary.json
+rules:
+  baseline_script: "skills/a-share-investment-research/scripts/backtest_signal.py"
+  parameter_scan_script: "skills/a-share-investment-research/scripts/vectorbt_scan.py"
+  avoid_future_data: true
+  include_t_plus_1: true
+  include_price_limit_constraints: true
+  required_metrics:
+    - trade_count
+    - win_rate
+    - profit_factor
+    - max_drawdown
+    - failed_samples
+    - parameter_scan_best

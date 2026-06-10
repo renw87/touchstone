@@ -1,0 +1,6 @@
+{
+  "name": "touchstone",
+  "version": "0.1.0",
+  "description": "Touchstone: A-share investment research rules, skills, and harness for Cursor.",
+  "rules": ".cursor/rules"
+}

@@ -1,0 +1,23 @@
+.refs/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Harness run records can contain user/account context.
+harness/runs/*
+!harness/runs/.gitkeep
+harness/alerts/*.jsonl
+
+# Data/cache outputs planned for collectors and backtests.
+data/raw/
+data/processed/
+reports/
+signals/
+backtests/
+.cache/
+
+# Personal runtime configs (account size / watchlist). Copy from the *.example.yaml templates.
+harness/configs/user_profile.yaml
+harness/configs/watchlist.yaml

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Dragon-Tiger List",
+  "type": "object",
+  "required": ["symbol", "entries"],
+  "properties": {
+    "symbol": { "type": "string" },
+    "name": { "type": "string" },
+    "source": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "source"],
+        "properties": {
+          "date": { "type": "string" },
+          "reason": { "type": "string" },
+          "seat": { "type": "string" },
+          "buy_amount": { "type": ["number", "null"] },
+          "sell_amount": { "type": ["number", "null"] },
+          "net_amount": { "type": ["number", "null"] },
+          "source": { "type": "string" }
+        }
+      }
+    }
+  }
+}

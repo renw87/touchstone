@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vectorbt Parameter Scan",
+  "type": "object",
+  "required": [
+    "symbol",
+    "engine",
+    "engine_status",
+    "rule",
+    "parameter_grid",
+    "period",
+    "ranking",
+    "results",
+    "best",
+    "insufficient_data",
+    "errors",
+    "verdict"
+  ],
+  "properties": {
+    "symbol": { "type": ["string", "null"] },
+    "name": { "type": ["string", "null"] },
+    "created_at": { "type": "string" },
+    "engine": { "type": "string" },
+    "engine_status": {
+      "type": "string",
+      "enum": ["ok", "dependency_missing", "not_run"]
+    },
+    "source_market_data": { "type": "string" },
+    "rule": { "type": ["string", "null"] },
+    "parameter_grid": { "type": "object" },
+    "period": {
+      "type": "object",
+      "required": ["start", "end", "bar_count"],
+      "properties": {
+        "start": { "type": "string" },
+        "end": { "type": "string" },
+        "bar_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ranking": { "type": "object" },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["params", "metrics"],
+        "properties": {
+          "params": { "type": "object" },
+          "metrics": { "type": "object" }
+        }
+      }
+    },
+    "best": { "type": "array" },
+    "insufficient_data": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "verdict": { "type": "string" }
+  }
+}

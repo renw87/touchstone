@@ -1,0 +1,41 @@
+{
+  "symbol": "300750.SZ",
+  "name": "宁德时代",
+  "as_of": "2026-06-09T16:30:00+08:00",
+  "signal": "watch",
+  "confidence": 0.5,
+  "reason": "示例运行未接入真实行情、财报、公告和回测数据，不能升级为建仓或加仓。",
+  "trigger_condition": "补齐真实数据并完成回测后，若技术触发、风险预算和反方审查均通过，再评估 pilot_build。",
+  "entry_zone": {
+    "low": 0,
+    "high": 0,
+    "basis": "示例运行不提供真实价位。"
+  },
+  "stop_condition": "出现 ST、停牌、重大监管风险、财务证据恶化或流动性不足时降级为 no_trade。",
+  "take_profit_plan": [
+    {
+      "condition": "无持仓且无交易信号",
+      "action": "no_action"
+    }
+  ],
+  "position_limit": {
+    "max_weight": 0,
+    "max_loss_pct_of_account": 0,
+    "suggested_lots": 0
+  },
+  "evidence": [
+    "Harness fixture: input shape is complete.",
+    "Harness fixture: real market, financial, announcement, and backtest data are missing."
+  ],
+  "bear_case": "没有真实数据和回测，任何建仓提醒都可能是伪信号。",
+  "backtest_summary": {
+    "period": "not_run",
+    "win_rate": 0,
+    "profit_factor": 0,
+    "max_drawdown": 0,
+    "trade_count": 0,
+    "verdict": "未回测，不能升级为建仓。"
+  },
+  "next_review_time": "2026-06-10T09:00:00+08:00",
+  "disclaimer": "Research assistance only, not investment advice."
+}

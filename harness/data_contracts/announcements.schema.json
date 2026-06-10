@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Announcements",
+  "type": "object",
+  "required": ["symbol", "announcements"],
+  "properties": {
+    "symbol": { "type": "string" },
+    "announcements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["publish_time", "title", "source_url"],
+        "properties": {
+          "publish_time": { "type": "string" },
+          "event_type": { "type": "string" },
+          "title": { "type": "string" },
+          "source_url": { "type": "string" },
+          "summary": { "type": "string" },
+          "impact_direction": {
+            "type": "string",
+            "enum": ["support", "oppose", "neutral", "unknown"]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          }
+        }
+      }
+    }
+  }
+}

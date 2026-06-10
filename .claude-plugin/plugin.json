@@ -1,0 +1,20 @@
+{
+  "name": "touchstone",
+  "version": "0.1.0",
+  "description": "Touchstone: evidence-based A-share investment research skills and harness — falsifiable theses, conditional alerts, and risk control.",
+  "author": {
+    "name": "Trading Workspace"
+  },
+  "homepage": "https://github.com/local/touchstone",
+  "repository": "https://github.com/local/touchstone",
+  "license": "UNLICENSED",
+  "keywords": [
+    "touchstone",
+    "a-share",
+    "stock-analysis",
+    "investment-research",
+    "skills",
+    "harness",
+    "risk-control"
+  ]
+}

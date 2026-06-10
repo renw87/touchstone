@@ -1,0 +1,41 @@
+{
+  "symbol": "600519.SH",
+  "name": "贵州茅台",
+  "as_of": "2026-06-09T16:30:00+08:00",
+  "signal": "watch",
+  "confidence": 0.62,
+  "reason": "基本面质量较高，但当前未出现满足风险预算的技术触发位置。",
+  "trigger_condition": "若收盘价放量站上关键阻力并完成回踩确认，则升级为 pilot_build 候选。",
+  "entry_zone": {
+    "low": 0,
+    "high": 0,
+    "basis": "示例文件不提供真实价位，实际分析时必须由行情和支撑阻力计算得出。"
+  },
+  "stop_condition": "跌破关键支撑或基本面证据恶化时维持 no_trade/watch。",
+  "take_profit_plan": [
+    {
+      "condition": "达到第一目标位或出现量价衰竭",
+      "action": "take_profit_partial"
+    }
+  ],
+  "position_limit": {
+    "max_weight": 0.15,
+    "max_loss_pct_of_account": 0.01,
+    "suggested_lots": 0
+  },
+  "evidence": [
+    "示例：最近一期定期报告显示经营现金流仍需核对。",
+    "示例：实际使用时必须替换为真实公告、财报或行情证据。"
+  ],
+  "bear_case": "示例：若消费需求继续走弱或估值中枢下移，当前观察逻辑需要降级。",
+  "backtest_summary": {
+    "period": "not_run",
+    "win_rate": 0,
+    "profit_factor": 0,
+    "max_drawdown": 0,
+    "trade_count": 0,
+    "verdict": "示例信号未回测，不能升级为建仓。"
+  },
+  "next_review_time": "2026-06-10T09:00:00+08:00",
+  "disclaimer": "Research assistance only, not investment advice."
+}

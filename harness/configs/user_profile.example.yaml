@@ -1,0 +1,19 @@
+# 模板：复制本文件为 user_profile.yaml 并按自己实际情况填写。
+# user_profile.yaml 已被 .gitignore 忽略，不会提交到仓库。
+user_profile:
+  investor_type: retail          # retail | professional
+  market: A-share
+  default_horizon: swing         # intraday | swing | medium | long
+  risk_style: balanced           # conservative | balanced | aggressive
+  account_equity: 100000         # 你的账户权益（按实际填写，仅本地使用）
+  max_single_stock_weight: 0.15
+  max_industry_weight: 0.30
+  risk_per_trade: 0.01
+  max_portfolio_drawdown: 0.08
+  min_daily_amount_cny: 100000000
+  allow_st: false
+  allow_suspended: false
+  allow_low_liquidity: false
+  allow_limit_up_chase: false
+  require_backtest_for_trade_signal: true
+  review_timezone: Asia/Shanghai

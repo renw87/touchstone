@@ -1,0 +1,17 @@
+# 模板：复制本文件为 watchlist.yaml 并替换为你自己的自选股。
+# watchlist.yaml 已被 .gitignore 忽略，不会提交到仓库。
+watchlist:
+  - symbol: "600519.SH"          # 示例标的
+    name: "示例公司A"
+    horizon: medium              # intraday | swing | medium | long
+    priority: high               # high | medium | low
+    thesis: "示例：用一句话写下可证伪的投资逻辑。"
+  - symbol: "300750.SZ"          # 示例标的
+    name: "示例公司B"
+    horizon: swing
+    priority: medium
+    thesis: "示例：关注行业景气与关键催化剂。"
+
+blocked:
+  - reason: "ST and delisting-risk names are blocked by default."
+  - reason: "Low-liquidity names are blocked by default."

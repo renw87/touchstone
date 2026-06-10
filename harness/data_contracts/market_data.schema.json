@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A Share Market Data",
+  "type": "object",
+  "required": ["symbol", "adjustment", "bars"],
+  "properties": {
+    "symbol": { "type": "string" },
+    "adjustment": {
+      "type": "string",
+      "enum": ["none", "qfq", "hfq"]
+    },
+    "bars": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "open", "high", "low", "close", "volume", "amount"],
+        "properties": {
+          "date": { "type": "string" },
+          "open": { "type": "number" },
+          "high": { "type": "number" },
+          "low": { "type": "number" },
+          "close": { "type": "number" },
+          "volume": { "type": "number" },
+          "amount": { "type": "number" },
+          "turnover_rate": { "type": "number" },
+          "limit_up": { "type": ["number", "null"] },
+          "limit_down": { "type": ["number", "null"] }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+task_id: pre_market_check
+task_type: review
+description: "盘前检查观察池的公告、政策、隔夜事件和今日触发条件。"
+skill:
+  plugin: "."
+  name: "a-share-investment-research"
+required_inputs:
+  - watchlist
+  - user_profile
+  - previous_runs
+required_outputs:
+  - pre_market_report.md
+  - changed_signals.json
+rules:
+  rewrite_full_fundamentals: false
+  focus:
+    - announcements
+    - policy
+    - overnight_news
+    - trigger_levels
+    - invalidation_levels

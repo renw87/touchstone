@@ -1,0 +1,21 @@
+{
+  "skill_used": "skills/a-share-investment-research/SKILL.md",
+  "references_used": [
+    "references/workflow.md",
+    "references/signal-policy.md"
+  ],
+  "data_sources": [
+    "Harness fixture only"
+  ],
+  "insufficient_data": [
+    "market_data",
+    "financials",
+    "announcements",
+    "backtest"
+  ],
+  "no_trade_gates": [],
+  "has_bear_case": true,
+  "has_backtest_summary": true,
+  "signal_boundary_ok": true,
+  "next_review_time": "2026-06-10T09:00:00+08:00"
+}

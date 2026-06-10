@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research Task",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_type",
+    "symbol",
+    "name",
+    "horizon",
+    "risk_style",
+    "account",
+    "current_position",
+    "requested_outputs",
+    "skill_context",
+    "data_context"
+  ],
+  "properties": {
+    "task_id": { "type": "string" },
+    "task_type": {
+      "type": "string",
+      "enum": ["research", "review", "backtest", "alert_check"]
+    },
+    "symbol": { "type": "string" },
+    "name": { "type": "string" },
+    "horizon": {
+      "type": "string",
+      "enum": ["short", "swing", "medium", "long"]
+    },
+    "risk_style": {
+      "type": "string",
+      "enum": ["conservative", "balanced", "aggressive"]
+    },
+    "account": {
+      "type": "object",
+      "required": ["equity", "max_single_stock_weight", "risk_per_trade"],
+      "properties": {
+        "equity": { "type": "number", "minimum": 0 },
+        "max_single_stock_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "risk_per_trade": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "current_position": {
+      "type": "object",
+      "required": ["shares", "cost_price"],
+      "properties": {
+        "shares": { "type": "integer", "minimum": 0 },
+        "cost_price": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "requested_outputs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "skill_context": {
+      "type": "object",
+      "required": ["skill", "references"],
+      "properties": {
+        "skill": { "type": "string" },
+        "references": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "data_context": {
+      "type": "object",
+      "required": ["data_root", "symbol_dir", "files", "missing"],
+      "properties": {
+        "data_root": { "type": "string" },
+        "symbol_dir": { "type": "string" },
+        "files": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "missing": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

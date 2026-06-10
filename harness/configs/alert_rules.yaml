@@ -1,0 +1,29 @@
+schedule:
+  pre_market: "09:00"
+  intraday_checks:
+    - "10:30"
+    - "14:30"
+  post_market: "16:30"
+  weekly_review: "Saturday 10:00"
+  earnings_review: on_report_publish
+
+signal_thresholds:
+  watch:
+    min_total_score: 20
+  pilot_build:
+    min_total_score: 26
+    min_fundamental_score: 3
+    min_risk_score: 3
+    min_backtest_score: 3
+  add:
+    min_total_score: 30
+    require_existing_profit: true
+    require_new_evidence: true
+
+risk_controls:
+  max_single_stock_weight: 0.15
+  max_loss_pct_of_account_per_trade: 0.01
+  require_stop_condition: true
+  require_bear_case: true
+  require_evidence: true
+  require_position_limit: true
