@@ -1,0 +1,32 @@
+{
+  "name": "touchstone",
+  "owner": {
+    "name": "renwei_8080",
+    "url": "https://github.com/renw87"
+  },
+  "metadata": {
+    "description": "Touchstone — evidence-based A-share investment research plugin marketplace.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "touchstone",
+      "source": "./",
+      "description": "Evidence-based A-share investment research: skills, commands, an investment-committee agent, and a research harness — falsifiable theses, conditional build/add/take-profit/stop-loss alerts, and risk control.",
+      "version": "0.1.0",
+      "author": {
+        "name": "renwei_8080"
+      },
+      "homepage": "https://github.com/renw87/touchstone",
+      "license": "MIT",
+      "keywords": [
+        "a-share",
+        "stock-analysis",
+        "investment-research",
+        "skills",
+        "harness",
+        "risk-control"
+      ]
+    }
+  ]
+}

@@ -5,9 +5,9 @@
   "author": {
     "name": "Trading Workspace"
   },
-  "homepage": "https://github.com/local/touchstone",
-  "repository": "https://github.com/local/touchstone",
-  "license": "UNLICENSED",
+  "homepage": "https://github.com/renw87/touchstone",
+  "repository": "https://github.com/renw87/touchstone",
+  "license": "MIT",
   "keywords": [
     "touchstone",
     "a-share",
