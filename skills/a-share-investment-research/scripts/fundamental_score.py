@@ -41,6 +41,34 @@ def add_component(components: list[dict[str, Any]], name: str, score: float, evi
     components.append({"name": name, "score": round(score, 4), "evidence": evidence})
 
 
+def parse_report_date(report: dict[str, Any]) -> datetime | None:
+    raw = str(report.get("report_period", "") or report.get("REPORT_DATE", "") or report.get("REPORTDATE", ""))
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(raw[:10], fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def find_yoy_report(reports: list[dict[str, Any]], latest: dict[str, Any]) -> dict[str, Any]:
+    latest_date = parse_report_date(latest)
+    if latest_date is None:
+        return {}
+    candidates: list[tuple[str, dict[str, Any]]] = []
+    for report in reports:
+        report_date = parse_report_date(report)
+        if report_date is None:
+            continue
+        if (
+            report_date.year == latest_date.year - 1
+            and report_date.month == latest_date.month
+            and report_date.day == latest_date.day
+        ):
+            candidates.append((str(report.get("report_period", "")), report))
+    return sorted(candidates, key=lambda item: item[0])[-1][1] if candidates else {}
+
+
 def score_financials(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     reports = sorted(data.get("reports", []), key=lambda item: str(item.get("report_period", "")))
@@ -64,13 +92,14 @@ def score_financials(path: Path) -> dict[str, Any]:
         }
 
     latest = reports[-1]
-    previous = reports[-2] if len(reports) >= 2 else {}
+    yoy_report = find_yoy_report(reports, latest)
     latest_period = str(latest.get("report_period", ""))
+    yoy_period = str(yoy_report.get("report_period", ""))
 
     revenue = num(latest.get("revenue"))
-    prev_revenue = num(previous.get("revenue"))
+    prev_revenue = num(yoy_report.get("revenue"))
     profit = num(latest.get("net_profit_parent"))
-    prev_profit = num(previous.get("net_profit_parent"))
+    prev_profit = num(yoy_report.get("net_profit_parent"))
     ocf = num(latest.get("operating_cash_flow"))
     roe = num(latest.get("roe"))
     gross_margin = num(latest.get("gross_margin"))
@@ -83,29 +112,32 @@ def score_financials(path: Path) -> dict[str, Any]:
     fundamental = 0.0
     risk = 2.0
 
+    if not yoy_report:
+        insufficient.append("same_period_last_year_report")
+
     revenue_growth = pct_growth(revenue, prev_revenue)
     if revenue_growth is None:
         insufficient.append("revenue_growth")
     elif revenue_growth > 0.15:
         fundamental += 0.9
-        add_component(components, "revenue_growth", 0.9, f"营收增长 {revenue_growth:.2%}")
+        add_component(components, "revenue_growth", 0.9, f"营收同比增长 {revenue_growth:.2%}")
     elif revenue_growth > 0:
         fundamental += 0.5
-        add_component(components, "revenue_growth", 0.5, f"营收增长 {revenue_growth:.2%}")
+        add_component(components, "revenue_growth", 0.5, f"营收同比增长 {revenue_growth:.2%}")
     else:
-        add_component(components, "revenue_growth", 0, f"营收下滑 {revenue_growth:.2%}")
+        add_component(components, "revenue_growth", 0, f"营收同比下滑 {revenue_growth:.2%}")
 
     profit_growth = pct_growth(profit, prev_profit)
     if profit_growth is None:
         insufficient.append("profit_growth")
     elif profit_growth > 0.15:
         fundamental += 0.9
-        add_component(components, "profit_growth", 0.9, f"归母净利增长 {profit_growth:.2%}")
+        add_component(components, "profit_growth", 0.9, f"归母净利同比增长 {profit_growth:.2%}")
     elif profit_growth > 0:
         fundamental += 0.5
-        add_component(components, "profit_growth", 0.5, f"归母净利增长 {profit_growth:.2%}")
+        add_component(components, "profit_growth", 0.5, f"归母净利同比增长 {profit_growth:.2%}")
     else:
-        add_component(components, "profit_growth", 0, f"归母净利下滑 {profit_growth:.2%}")
+        add_component(components, "profit_growth", 0, f"归母净利同比下滑 {profit_growth:.2%}")
 
     if ocf is None:
         insufficient.append("operating_cash_flow")
@@ -170,6 +202,8 @@ def score_financials(path: Path) -> dict[str, Any]:
     fundamental = max(0.0, min(5.0, fundamental))
     risk = max(0.0, min(5.0, risk))
     evidence.append(f"最新报告期：{latest_period}")
+    if yoy_period:
+        evidence.append(f"同比基准报告期：{yoy_period}")
     if insufficient:
         evidence.append(f"基本面评分缺少字段：{', '.join(sorted(set(insufficient)))}")
 
@@ -179,6 +213,10 @@ def score_financials(path: Path) -> dict[str, Any]:
         "created_at": datetime.now().isoformat(),
         "source_financials": str(path),
         "latest_report_period": latest_period,
+        "comparison_basis": {
+            "growth": "same_period_last_year",
+            "comparison_report_period": yoy_period,
+        },
         "scores": {"fundamental": round(fundamental, 4), "risk": round(risk, 4)},
         "components": components,
         "evidence": evidence,
