@@ -1,68 +1,73 @@
-# External Project Mapping
+# Research Pattern Map
 
-This skill borrows ideas from the five projects in the Xiaohongshu note, but does not vendor their code or copy private rules. Use them as design references.
+Use this map to choose the right local capability during A-share research.
 
-## UZI-Skill
+## Deep Stock Research
 
-Absorb:
+Use for:
 
-- A-share oriented deep analysis.
-- Trap checks: ST/退市、财务异常、商誉、应收、存货、质押、监管问询、业绩预告变脸。
+- full A-share analysis.
+- trap checks: ST/delisting, financial anomalies, goodwill, receivables, inventory, pledge, regulatory inquiries, earnings forecast reversals.
 - Dragon-Tiger list and Chinese market microstructure awareness.
-- Quant rule mindset: conclusions should become explicit checks.
+- converting qualitative conclusions into explicit checks.
 
-Implement here:
+Local implementation:
 
 - `references/a-share-data.md` for fields.
-- `references/signal-policy.md` for gatekeeping and risk rules.
+- `references/research-quality-gates.md` for coverage and self-review gates.
+- `references/signal-policy.md` for signal boundaries.
 
-## TradingAgents
+## Multi-Agent Research Team
 
-Absorb:
+Use for:
 
-- Multi-agent research team pattern.
-- Separate analysts for fundamentals, sentiment/news, technicals, research debate, trading, and risk.
+- separate analysts for fundamentals, sentiment/news, technicals, research debate, trading, and risk.
+- contradiction review before signal upgrade.
 
-Implement here:
+Local implementation:
 
 - `references/agent-roles.md`.
-- The final signal is produced only by the orchestrator after the bear case and risk checks.
+- the final signal is produced only by the orchestrator after bear-case and risk checks.
 
-## Serenity Skill
+## Chain Bottleneck Research
 
-Absorb:
+Use for:
 
-- Start from hot theme, break down the industry chain, find bottlenecks and beneficiaries, then map back to listed stocks.
-- Require business exposure and financial evidence, not only topic popularity.
+- starting from hot themes.
+- breaking down the industry chain.
+- finding bottlenecks and beneficiaries.
+- mapping back to stocks and fund directions.
 
-Implement here:
+Local implementation:
 
-- Theme chain: theme/policy -> segment -> company exposure -> revenue/profit transmission -> evidence -> valuation expectation gap.
+- `references/chain-bottleneck-research.md`.
+- `scripts/theme_chain.py`.
+- theme chain path: theme/policy -> segment -> company exposure -> revenue/profit transmission -> evidence -> valuation expectation gap.
 
-## Buffett Skills
+## Quality Investing Review
 
-Absorb:
+Use for:
 
-- Quality-first inspection: good business, moat, cash flow, management, capital allocation, margin of safety.
-- Force a cold review before excitement-driven entries.
+- quality-first inspection: good business, moat, cash flow, management, capital allocation, margin of safety.
+- cold review before excitement-driven entries.
 
-Implement here:
+Local implementation:
 
-- Fundamental, valuation, and bear-case sections.
-- Low valuation cannot override deteriorating fundamentals.
+- fundamental, valuation, and bear-case sections.
+- low valuation cannot override deteriorating fundamentals.
 
-## QuantDinger
+## Quant Workbench
 
-Absorb:
+Use for:
 
-- Full workbench path: AI research -> strategy rules -> backtest -> paper trading -> alerting -> review.
+- AI research -> strategy rules -> backtest -> parameter scan -> paper tracking -> alerting -> review.
 
-Implement here:
+Local implementation:
 
 - `references/workflow.md` phases.
-- Backtest score is mandatory before `pilot_build` or `add` in automated workflows.
+- backtest score is mandatory before `pilot_build` or `add` in automated workflows.
 
-## Better Additions For A Shares
+## A-Share Engineering Stack
 
 Use these with the skill when implementing code:
 

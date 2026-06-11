@@ -32,6 +32,13 @@ Return:
 - user-keyword boost.
 - recommendation as a risk warning only.
 
+## Completion Check
+
+- Each of the 8 signals must be marked `hit`, `not_hit`, or `insufficient_data`.
+- If any signal is `hit`, provide at least one concrete source or explain why source access failed.
+- If 4 or more signals are hit, start the warning with "strong caution" / "强烈建议谨慎" or stronger wording.
+- Write a machine-readable summary when possible: `trap_score` from 1-10, `trap_level`, `signals_hit`, `user_keyword_boost`, and `warning_phrases`.
+
 ## Boundary
 
 This skill can downgrade or block `pilot_build` and `add`. It cannot create a buy signal.

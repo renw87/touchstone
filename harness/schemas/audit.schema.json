@@ -34,6 +34,28 @@
     "has_bear_case": { "type": "boolean" },
     "has_backtest_summary": { "type": "boolean" },
     "signal_boundary_ok": { "type": "boolean" },
+    "quality_gates": {
+      "type": "object",
+      "properties": {
+        "methodology": { "type": "string" },
+        "proposed_signal": { "type": "string" },
+        "max_signal_by_quality_gate": { "type": "string" },
+        "applied_signal_after_gate": { "type": "string" },
+        "present_count": { "type": "integer" },
+        "total_count": { "type": "integer" },
+        "coverage_ratio": { "type": "number" },
+        "preflight": { "type": "object" },
+        "core_missing": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "trade_upgrade_missing": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dimensions": { "type": "array" }
+      }
+    },
     "next_review_time": { "type": "string" }
   }
 }

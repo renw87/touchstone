@@ -1,6 +1,6 @@
 ---
 name: investor-panel
-description: Use when the user wants an investment committee, debate, Buffett-style quality check, growth-vs-value comparison, bear case, or multi-perspective review of an A-share thesis. 输出投委会式分歧和决策边界。
+description: Use when the user wants an investment committee, debate, quality-investing check, growth-vs-value comparison, bear case, or multi-perspective review of an A-share thesis. 输出投委会式分歧和决策边界。
 metadata:
   short-description: 多视角投委会和反方审查
 ---

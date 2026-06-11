@@ -1,0 +1,105 @@
+{
+  "symbol": "300750.SZ",
+  "name": "宁德时代",
+  "system_change": "AI 数据中心和新能源扩张推高电力与储能系统需求。",
+  "themes": [
+    {
+      "name": "电力设备",
+      "stage": "grid_and_storage",
+      "confidence": "medium",
+      "revenue_exposure_pct": 25,
+      "profit_transmission": "项目订单和产能利用率提升传导到收入与毛利率。",
+      "evidence": [
+        {
+          "claim": "年报披露相关业务收入增长。",
+          "source": "annual_report",
+          "strength": "strong"
+        }
+      ],
+      "risks": ["项目制收入确认慢", "应收账款上升"]
+    }
+  ],
+  "layers": [
+    {
+      "segment": "储能系统",
+      "role": "新能源消纳和数据中心备用电源",
+      "bottleneck": "安全、循环寿命、系统集成和交付能力",
+      "supplier_count": 5,
+      "qualification_months": 12,
+      "factors": {
+        "demand_inflection": 4,
+        "architecture_coupling": 4,
+        "bottleneck_severity": 3,
+        "supplier_concentration": 3,
+        "expansion_difficulty": 3,
+        "evidence_quality": 4,
+        "valuation_disconnect": 2,
+        "catalyst_timing": 3
+      },
+      "penalties": {
+        "hype_risk": 1,
+        "accounting_quality": 2,
+        "cyclicality": 2
+      },
+      "evidence": [
+        {
+          "claim": "公司公告披露储能项目中标或产能进展。",
+          "source": "company_announcement",
+          "strength": "strong"
+        }
+      ],
+      "next_checks": ["检查储能收入占比和毛利率", "检查合同负债和应收账款"]
+    }
+  ],
+  "candidates": [
+    {
+      "symbol": "300750.SZ",
+      "name": "宁德时代",
+      "market": "A-share",
+      "layer": "储能系统",
+      "what_it_constrains": "电池系统集成、交付和成本曲线",
+      "factors": {
+        "demand_inflection": 4,
+        "architecture_coupling": 4,
+        "bottleneck_severity": 3,
+        "supplier_concentration": 3,
+        "expansion_difficulty": 3,
+        "evidence_quality": 4,
+        "valuation_disconnect": 2,
+        "catalyst_timing": 3
+      },
+      "penalties": {
+        "liquidity": 0,
+        "hype_risk": 1,
+        "accounting_quality": 1,
+        "cyclicality": 2
+      },
+      "evidence": [
+        {
+          "claim": "财报披露储能相关业务收入和毛利率。",
+          "source": "annual_report",
+          "strength": "strong"
+        }
+      ],
+      "risks": ["估值已反映部分增长", "行业价格竞争"],
+      "next_checks": ["储能业务收入增速", "毛利率是否企稳"]
+    }
+  ],
+  "fund_directions": [
+    {
+      "direction": "电力设备/储能 ETF",
+      "check": "核验前十大持仓是否集中在储能系统、逆变器和电网设备，而不是泛新能源叙事。"
+    }
+  ],
+  "lower_priority_popular_areas": [
+    {
+      "area": "纯概念小票",
+      "reason": "缺少订单和财务兑现证据。"
+    }
+  ],
+  "next_checks": [
+    "先查目标公司最新年报和季报的分部收入。",
+    "再查公告、问询函、互动易中的订单、客户认证和产能进度。",
+    "最后检查估值、应收、存货和现金流是否支持主题兑现。"
+  ]
+}

@@ -123,18 +123,30 @@ def evaluate_report(report_path: Path) -> list[str]:
     return [f"report.md missing sections: {', '.join(missing)}"] if missing else []
 
 
-def evaluate_audit(audit_path: Path) -> list[str]:
+def evaluate_audit(audit_path: Path, signal_path: Path) -> list[str]:
     if not audit_path.exists():
         return ["audit.json missing"]
     audit, error = load_json(audit_path)
     if error:
         return [f"cannot read audit.json: {error}"]
     assert audit is not None
+    signal, signal_error = load_json(signal_path)
+    if signal_error:
+        signal = {}
     failures = []
     if audit.get("has_bear_case") is False:
         failures.append("audit says bear case is missing")
     if audit.get("signal_boundary_ok") is False:
         failures.append("audit says signal boundary failed")
+    quality_gates = audit.get("quality_gates")
+    if isinstance(quality_gates, dict):
+        if quality_gates.get("total_count") != 22:
+            failures.append("quality_gates.total_count must be 22")
+        applied_signal = quality_gates.get("applied_signal_after_gate")
+        if applied_signal and signal and applied_signal != signal.get("signal"):
+            failures.append("quality gate applied signal does not match signal.json")
+        if signal and signal.get("signal") in TRADE_SIGNALS and quality_gates.get("max_signal_by_quality_gate") != "add":
+            failures.append("trade signal exceeds research quality gate")
     return failures
 
 
@@ -149,7 +161,7 @@ def main() -> int:
 
     failures.extend(evaluate_signal(run_dir / "signal.json"))
     failures.extend(evaluate_report(run_dir / "report.md"))
-    failures.extend(evaluate_audit(run_dir / "audit.json"))
+    failures.extend(evaluate_audit(run_dir / "audit.json", run_dir / "signal.json"))
 
     result = {
         "evaluated_at": datetime.now(timezone.utc).isoformat(),

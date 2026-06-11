@@ -22,6 +22,7 @@ Use this skill to interpret Dragon-Tiger list data and short-term capital behavi
 - classify seats: institution, quant, known hot money, branch, unknown.
 - identify one-day speculation vs sustained flow.
 - compare LHB amount with daily amount and float market cap.
+- compare same-sector LHB activity to judge whether this stock is the recognizable leader or only a follower.
 - flag high-risk patterns: post-limit-board distribution, excessive turnover, repeated unknown seats.
 
 ## Output
@@ -35,3 +36,4 @@ Use this skill to interpret Dragon-Tiger list data and short-term capital behavi
 ## Boundary
 
 LHB can modify `flow_score` and risk. It cannot independently upgrade to `pilot_build` or `add`.
+If LHB is the main bullish evidence while fundamentals, valuation, trap scan, or backtest are missing, cap the main signal at `watch`.

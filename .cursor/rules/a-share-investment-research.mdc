@@ -9,6 +9,7 @@ alwaysApply: false
 
 Use `skills/a-share-investment-research/SKILL.md` when the user asks for A-share stock research, investment-chain analysis, financial statement review, technical setup, support/resistance, backtesting, or conditional build/add/take-profit/stop-loss alerts.
 
-Prefer the deterministic script chain in `commands/analyze-stock.md` for automation: collect data, score fundamentals, score valuation, map theme chain, compute technicals, run baseline backtest, run vectorbt parameter scan, create a Harness run, then orchestrate `report.md`, `signal.json`, and `audit.json`.
+Prefer the deterministic script chain in `commands/analyze-stock.md` for automation: collect data, score fundamentals, score valuation, map theme chain with layer-first bottleneck research, compute technicals, run baseline backtest, run vectorbt parameter scan, create a Harness run, then orchestrate `report.md`, `signal.json`, and `audit.json` with 22-dimension research quality gates.
 
 Do not output unconditional buy/sell instructions. Every signal must include trigger condition, invalidation condition, position limit, stop-loss logic, take-profit plan, evidence, bear case, and next review time.
+Do not upgrade to `pilot_build` or `add` when core dimensions, trap-risk evidence, or backtest evidence are missing.

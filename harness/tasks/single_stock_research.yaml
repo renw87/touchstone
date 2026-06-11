@@ -24,6 +24,8 @@ analysis_blocks:
   - valuation_score
   - theme_industry_chain
   - theme_chain
+  - chain_bottleneck_scan
+  - research_22_dimension_quality_gate
   - technicals
   - support_resistance
   - capital_flow
