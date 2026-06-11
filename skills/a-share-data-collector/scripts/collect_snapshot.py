@@ -40,9 +40,13 @@ def number(value: Any) -> float | None:
     if value is None or value == "":
         return None
     try:
-        return float(value)
+        result = float(value)
     except (TypeError, ValueError):
         return None
+    # pandas returns NaN/inf for missing cells; treat those as missing.
+    if result != result or result in (float("inf"), float("-inf")):
+        return None
+    return result
 
 
 def row_value(row: Any, *names: str) -> Any:
@@ -53,6 +57,12 @@ def row_value(row: Any, *names: str) -> Any:
         except TypeError:
             pass
     return None
+
+
+def _to_yyyymmdd(value: Any) -> str:
+    """Normalize a date-like value ('2024-03-31' or datetime.date) to YYYYMMDD."""
+    digits = "".join(ch for ch in str(value) if ch.isdigit())
+    return digits[:8] if len(digits) >= 8 else ""
 
 
 def collect_akshare(args: argparse.Namespace) -> tuple[list[dict[str, Any]], str | None]:
@@ -106,56 +116,66 @@ def collect_financials_akshare(args: argparse.Namespace) -> tuple[list[dict[str,
         return [], error
 
     code = akshare_symbol(args.symbol)
-    frames: list[Any] = []
-    errors: list[str] = []
-    for call_name, kwargs in (
-        ("stock_financial_abstract", {"symbol": code}),
-        ("stock_financial_analysis_indicator", {"symbol": code}),
-    ):
-        func = getattr(ak, call_name, None)
-        if not func:
-            errors.append(f"{call_name}_missing")
-            continue
-        try:
-            frames.append(func(**kwargs))
-        except Exception as exc:  # noqa: BLE001 - provider failures are status data
-            errors.append(f"{call_name}_failed: {exc}")
+    try:
+        frame = ak.stock_financial_abstract(symbol=code)
+    except Exception as exc:  # noqa: BLE001 - provider failures are status data
+        return [], f"stock_financial_abstract_failed: {exc}"
+    if frame is None or getattr(frame, "empty", True):
+        return [], "akshare_financials_empty"
 
+    # stock_financial_abstract is a wide table: each row is one metric, columns
+    # are 选项/指标 plus one column per report period (YYYYMMDD). We pivot it to
+    # one record per report period.
+    metric_map = {
+        "营业总收入": "revenue",
+        "归母净利润": "net_profit_parent",
+        "净利润": "net_profit",
+        "扣非净利润": "net_profit_excl_nonrecurring",
+        "经营现金流量净额": "operating_cash_flow",
+        "毛利率": "gross_margin",
+        "销售净利率": "net_margin",
+        "净资产收益率(ROE)": "roe",
+        "资产负债率": "debt_to_asset",
+        "股东权益合计(净资产)": "net_assets",
+        "商誉": "goodwill",
+    }
+    period_cols = [c for c in frame.columns if isinstance(c, str) and len(c) == 8 and c.isdigit()]
+    if not period_cols:
+        return [], "akshare_financials_no_period_columns"
+
+    periods: dict[str, dict[str, Any]] = {
+        period: {"report_period": period, "publish_date": period} for period in period_cols
+    }
+    filled: set[tuple[str, str]] = set()
+    for _, row in frame.iterrows():
+        field = metric_map.get(str(row_value(row, "指标") or ""))
+        if not field:
+            continue
+        for period in period_cols:
+            key = (period, field)
+            if key in filled:
+                continue  # metric names repeat across 选项 groups; keep the first
+            value = number(row.get(period))
+            if value is not None:
+                periods[period][field] = value
+                filled.add(key)
+
+    contract_fields = (
+        "revenue", "net_profit_parent", "net_profit", "net_profit_excl_nonrecurring",
+        "operating_cash_flow", "gross_margin", "net_margin", "roe", "debt_to_asset",
+        "net_assets", "goodwill", "accounts_receivable", "inventory",
+    )
     reports: list[dict[str, Any]] = []
-    for frame in frames:
-        try:
-            iterator = frame.iterrows()
-        except AttributeError:
-            continue
-        for _, row in iterator:
-            report_period = str(row_value(row, "报告期", "报告日期", "date", "report_period") or "")
-            publish_date = str(row_value(row, "公告日期", "发布日期", "publish_date") or report_period)
-            if not report_period:
-                continue
-            reports.append(
-                {
-                    "report_period": report_period,
-                    "publish_date": publish_date,
-                    "revenue": number(row_value(row, "营业总收入", "营业收入", "revenue")),
-                    "net_profit_parent": number(row_value(row, "归母净利润", "净利润", "net_profit_parent")),
-                    "net_profit_excl_nonrecurring": number(row_value(row, "扣非净利润", "net_profit_excl_nonrecurring")),
-                    "operating_cash_flow": number(row_value(row, "经营现金流量净额", "operating_cash_flow")),
-                    "gross_margin": number(row_value(row, "销售毛利率", "毛利率", "gross_margin")),
-                    "net_margin": number(row_value(row, "销售净利率", "净利率", "net_margin")),
-                    "roe": number(row_value(row, "净资产收益率", "ROE", "roe")),
-                    "debt_to_asset": number(row_value(row, "资产负债率", "debt_to_asset")),
-                    "accounts_receivable": number(row_value(row, "应收账款", "accounts_receivable")),
-                    "inventory": number(row_value(row, "存货", "inventory")),
-                    "goodwill": number(row_value(row, "商誉", "goodwill")),
-                }
-            )
+    for period in period_cols:  # columns are already ordered newest -> oldest
+        record = periods[period]
+        for field in contract_fields:
+            record.setdefault(field, None)
+        if record.get("revenue") is not None or record.get("net_profit_parent") is not None:
+            reports.append(record)
 
-    deduped: dict[str, dict[str, Any]] = {}
-    for report in reports:
-        deduped[report["report_period"]] = {**deduped.get(report["report_period"], {}), **report}
-    if not deduped:
-        return [], "; ".join(errors) if errors else "akshare_financials_empty"
-    return list(deduped.values()), None
+    if not reports:
+        return [], "akshare_financials_empty"
+    return reports, None
 
 
 def collect_announcements_akshare(args: argparse.Namespace) -> tuple[list[dict[str, Any]], str | None]:
@@ -209,38 +229,50 @@ def collect_lhb_akshare(args: argparse.Namespace) -> tuple[list[dict[str, Any]],
     if error:
         return [], error
 
-    attempts = (
-        ("stock_lhb_detail_em", {"symbol": akshare_symbol(args.symbol), "start_date": args.start, "end_date": args.end}),
-        ("stock_lhb_stock_detail_em", {"symbol": akshare_symbol(args.symbol), "date": args.end}),
-    )
+    code = akshare_symbol(args.symbol)
+    # Step 1: list the dates this stock appeared on the Dragon-Tiger list.
+    try:
+        dates_frame = ak.stock_lhb_stock_detail_date_em(symbol=code)
+    except Exception as exc:  # noqa: BLE001 - provider failures are status data
+        return [], f"stock_lhb_stock_detail_date_em_failed: {exc}"
+    if dates_frame is None or getattr(dates_frame, "empty", True):
+        return [], "akshare_lhb_no_records"
+
+    all_dates: list[str] = []
+    for _, row in dates_frame.iterrows():
+        day = _to_yyyymmdd(row_value(row, "交易日", "上榜日", "日期", "date"))
+        if day:
+            all_dates.append(day)
+    in_range = sorted({d for d in all_dates if args.start <= d <= args.end}, reverse=True)
+    if not in_range:
+        latest = max(all_dates) if all_dates else "NA"
+        return [], f"akshare_lhb_none_in_range (latest_listed={latest})"
+
+    # Step 2: pull buy/sell seat details for the most recent in-range dates.
     errors: list[str] = []
     entries: list[dict[str, Any]] = []
-    for call_name, kwargs in attempts:
-        func = getattr(ak, call_name, None)
-        if not func:
-            errors.append(f"{call_name}_missing")
-            continue
-        try:
-            frame = func(**kwargs)
-        except Exception as exc:  # noqa: BLE001 - provider failures are status data
-            errors.append(f"{call_name}_failed: {exc}")
-            continue
-        try:
-            iterator = frame.iterrows()
-        except AttributeError:
-            continue
-        for _, row in iterator:
-            entries.append(
-                {
-                    "date": str(row_value(row, "上榜日", "日期", "date") or ""),
-                    "reason": str(row_value(row, "解读", "上榜原因", "reason") or ""),
-                    "seat": str(row_value(row, "营业部名称", "席位名称", "seat") or ""),
-                    "buy_amount": number(row_value(row, "买入额", "买入金额", "buy_amount")),
-                    "sell_amount": number(row_value(row, "卖出额", "卖出金额", "sell_amount")),
-                    "net_amount": number(row_value(row, "净买额", "net_amount")),
-                    "source": call_name,
-                }
-            )
+    for day in in_range[:10]:
+        for flag in ("买入", "卖出"):
+            try:
+                detail = ak.stock_lhb_stock_detail_em(symbol=code, date=day, flag=flag)
+            except Exception as exc:  # noqa: BLE001 - provider failures are status data
+                errors.append(f"stock_lhb_stock_detail_em_{day}_{flag}_failed: {exc}")
+                continue
+            if detail is None or getattr(detail, "empty", True):
+                continue
+            for _, row in detail.iterrows():
+                entries.append(
+                    {
+                        "date": f"{day[:4]}-{day[4:6]}-{day[6:8]}",
+                        "reason": str(row_value(row, "类型", "解读", "上榜原因", "reason") or ""),
+                        "seat": str(row_value(row, "交易营业部名称", "营业部名称", "席位名称", "seat") or ""),
+                        "buy_amount": number(row_value(row, "买入金额", "买入额", "buy_amount")),
+                        "sell_amount": number(row_value(row, "卖出金额", "卖出额", "sell_amount")),
+                        "net_amount": number(row_value(row, "净额", "净买额", "net_amount")),
+                        "flag": flag,
+                        "source": "stock_lhb_stock_detail_em",
+                    }
+                )
     if not entries:
         return [], "; ".join(errors) if errors else "akshare_lhb_empty"
     return entries, None
