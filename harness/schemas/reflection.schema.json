@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Signal Reflection",
+  "description": "Reflection-loop stage 2+3: one reflection per line in harness/journal/reflections.jsonl.",
+  "type": "object",
+  "required": ["signal_id", "symbol", "as_of", "signal", "reviewed_at", "result", "lesson"],
+  "properties": {
+    "signal_id": { "type": "string" },
+    "symbol": { "type": "string" },
+    "name": { "type": "string" },
+    "as_of": { "type": "string" },
+    "signal": { "type": "string" },
+    "reviewed_at": { "type": "string" },
+    "result": {
+      "type": "object",
+      "properties": {
+        "reviewed_bars": { "type": "integer" },
+        "ref_close": { "type": "number" },
+        "last_close": { "type": "number" },
+        "return_pct": { "type": "number" },
+        "max_gain_pct": { "type": "number" },
+        "max_drawdown_pct": { "type": "number" },
+        "benchmark_return_pct": { "type": "number" },
+        "alpha_pct": { "type": "number" },
+        "direction_correct": { "type": "boolean" },
+        "window": { "type": "string" },
+        "verdict": {
+          "type": "string",
+          "enum": ["correct", "wrong", "flat", "reviewed", "insufficient_data"]
+        }
+      }
+    },
+    "lesson": { "type": "string", "description": "One-line reusable lesson, fed back into future analysis." }
+  }
+}

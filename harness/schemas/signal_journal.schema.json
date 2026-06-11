@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Signal Journal Entry",
+  "description": "Reflection-loop stage 1: one logged signal per line in harness/journal/signals.jsonl (append-only).",
+  "type": "object",
+  "required": ["signal_id", "symbol", "as_of", "signal", "status"],
+  "properties": {
+    "signal_id": { "type": "string", "description": "Short hash of symbol|as_of|signal." },
+    "symbol": { "type": "string" },
+    "name": { "type": "string" },
+    "as_of": { "type": "string", "description": "Signal date, YYYY-MM-DD." },
+    "signal": { "type": "string" },
+    "confidence": { "type": ["number", "null"] },
+    "ref_close": { "type": ["number", "null"], "description": "Close on the signal date; baseline for return review." },
+    "entry_zone": { "type": ["object", "null"] },
+    "trigger_condition": { "type": "string" },
+    "stop_condition": { "type": "string" },
+    "take_profit_plan": { "type": "array" },
+    "next_review_time": { "type": "string" },
+    "status": { "type": "string", "enum": ["open", "resolved"] },
+    "resolved_at": { "type": "string" },
+    "logged_at": { "type": "string" },
+    "source_signal": { "type": "string" }
+  }
+}

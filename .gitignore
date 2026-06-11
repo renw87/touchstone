@@ -10,6 +10,11 @@ harness/runs/*
 !harness/runs/.gitkeep
 harness/alerts/*.jsonl
 
+# Reflection-loop journal: personal signal & lesson records, kept local only.
+harness/journal/*.jsonl
+harness/journal/lessons.md
+!harness/journal/.gitkeep
+
 # Data/cache outputs planned for collectors and backtests.
 data/raw/
 data/processed/

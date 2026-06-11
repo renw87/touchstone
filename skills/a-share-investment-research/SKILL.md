@@ -118,6 +118,25 @@ python skills/a-share-investment-research/scripts/signal_orchestrator.py 300750.
 
 `signal_orchestrator.py` must cap the result at `watch` or `no_trade` when financials, market data, valuation, theme-chain, technicals, or backtest evidence is missing.
 
+## Reflection Loop (learn from past signals)
+
+Close the loop so the system improves over time. Full guide: `references/reflection-loop.md`.
+
+1. **Before analysis — recall** prior lessons for this stock / signal type and fold them into the new thesis:
+   ```bash
+   python skills/a-share-investment-research/scripts/recall_lessons.py --symbol 300750.SZ
+   ```
+2. **After producing a signal — journal** it (records the signal-date close as the return baseline):
+   ```bash
+   python skills/a-share-investment-research/scripts/journal_signal.py harness/runs/<date>/300750.SZ/signal.json --market-dir data/raw/300750.SZ
+   ```
+3. **When a signal is due (next_review_time) — reflect**: pull the real price action since the signal, compute return / max move / direction / alpha vs a benchmark, and write a reusable lesson:
+   ```bash
+   python skills/a-share-investment-research/scripts/reflect_signal.py --benchmark-dir data/raw/_csi300
+   ```
+
+Journal and lesson files live under `harness/journal/` and stay local (gitignored). Recalled lessons are evidence about the *track record* of similar calls — they inform confidence, they do not by themselves justify upgrading a signal.
+
 ## Default Prompt
 
 Use this skill with:

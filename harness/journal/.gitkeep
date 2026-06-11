@@ -1,0 +1,3 @@
+# Reflection-loop journal directory.
+# Runtime files (signals.jsonl / reflections.jsonl / lessons.md) are gitignored —
+# they hold personal signal and lesson records and stay local.
