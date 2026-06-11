@@ -5,6 +5,7 @@ Use `$a-share-investment-research` for a lightweight first pass before full anal
 Check:
 
 - ST/suspension/delisting/liquidity gates.
+- core dimension availability: basic profile, financials, K-line, valuation, events, trap scan, backtest.
 - latest announcements or earnings risk.
 - basic trend and support/resistance.
 - obvious theme/business mismatch.

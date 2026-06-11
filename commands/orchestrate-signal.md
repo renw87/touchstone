@@ -20,4 +20,6 @@ harness/runs/{date}/{symbol}/signal.json
 harness/runs/{date}/{symbol}/audit.json
 ```
 
-Action signals are appended to `harness/alerts/alerts.jsonl`. Missing financials, market data, valuation, theme-chain, technicals, or backtest evidence must cap the result at `watch` or `no_trade`.
+Action signals are appended to `harness/alerts/alerts.jsonl`. Missing financials, market data, valuation, theme-chain, technicals, trap-risk evidence, core dimensions, or backtest evidence must cap the result at `watch` or `no_trade`.
+
+`audit.json` includes `quality_gates`, a 22-dimension coverage map and max-signal gate.

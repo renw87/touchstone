@@ -11,6 +11,119 @@ from typing import Any
 
 
 ACTION_SIGNALS = {"pilot_build", "add", "take_profit_partial", "take_profit_full", "stop_loss", "exit_risk"}
+QUALITY_PREFLIGHT_FILES = ("market_data.json", "collection_status.json")
+
+QUALITY_DIMENSIONS = (
+    {"id": "1_financials", "label": "Financial quality", "files": ("financials.json", "fundamental_score.json"), "core": True, "trade_required": True},
+    {"id": "2_kline", "label": "K-line and trend", "files": ("market_data.json", "technical_snapshot.json"), "core": True, "trade_required": True},
+    {"id": "3_macro", "label": "Macro exposure", "files": ("macro_context.json",), "core": False, "trade_required": False},
+    {"id": "4_peers", "label": "Competitors", "files": ("peers.json",), "core": False, "trade_required": False},
+    {"id": "5_chain", "label": "Upstream/downstream chain", "files": ("theme_chain.json",), "core": False, "trade_required": False},
+    {"id": "6_research", "label": "Research consensus", "files": ("research_consensus.json",), "core": False, "trade_required": False},
+    {"id": "7_industry", "label": "Industry cycle", "files": ("industry_context.json", "theme_chain.json"), "core": False, "trade_required": False},
+    {"id": "8_materials", "label": "Materials and cost", "files": ("materials.json",), "core": False, "trade_required": False},
+    {"id": "9_futures", "label": "Futures linkage", "files": ("futures.json",), "core": False, "trade_required": False},
+    {"id": "10_valuation", "label": "Valuation", "files": ("valuation_score.json",), "core": True, "trade_required": True},
+    {"id": "11_governance", "label": "Governance", "files": ("governance.json",), "core": False, "trade_required": False},
+    {"id": "12_flow", "label": "Capital flow", "files": ("capital_flow.json", "lhb.json"), "core": False, "trade_required": False},
+    {"id": "13_policy", "label": "Policy and regulation", "files": ("policy.json", "theme_chain.json"), "core": False, "trade_required": False},
+    {"id": "14_moat", "label": "Moat and IP", "files": ("moat.json",), "core": False, "trade_required": False},
+    {"id": "15_events", "label": "Events and catalysts", "files": ("announcements.json",), "core": True, "trade_required": True},
+    {"id": "16_lhb", "label": "Dragon-Tiger list", "files": ("lhb.json",), "core": False, "trade_required": False},
+    {"id": "17_sentiment", "label": "Sentiment", "files": ("sentiment.json",), "core": False, "trade_required": False},
+    {"id": "18_trap", "label": "Pump/scam risk", "files": ("trap_scan.json", "trap_risk.json"), "core": True, "trade_required": True},
+    {"id": "19_contests", "label": "Fund/public portfolio holders", "files": ("fund_holders.json", "portfolio_holders.json", "contests.json"), "core": False, "trade_required": False},
+    {"id": "20_valuation_models", "label": "Scenario valuation models", "files": ("valuation_models.json", "dcf.json", "comps.json"), "core": False, "trade_required": False},
+    {"id": "21_research_workflow", "label": "Institutional research workflow", "files": ("research_workflow.json", "catalyst_calendar.json", "thesis_tracker.json"), "core": False, "trade_required": False},
+    {"id": "22_deep_methods", "label": "Deep decision methods", "files": ("deep_methods.json", "ic_memo.json", "dd_checklist.json"), "core": False, "trade_required": False},
+)
+
+
+def quality_dimension_present(dim_id: str, data_dir: Path, loaded: dict[str, Any]) -> tuple[bool, list[str]]:
+    dimension = next(item for item in QUALITY_DIMENSIONS if item["id"] == dim_id)
+    evidence = [filename for filename in dimension["files"] if (data_dir / filename).exists()]
+    present = bool(evidence)
+
+    theme = loaded.get("theme") or {}
+    valuation = loaded.get("valuation") or {}
+    if dim_id == "5_chain" and theme.get("industry_chain"):
+        present = True
+        evidence.append("theme_chain.industry_chain")
+    elif dim_id == "7_industry" and (theme.get("layer_ranking") or theme.get("industry_chain")):
+        present = True
+        evidence.append("theme_chain.layer_ranking")
+    elif dim_id == "13_policy" and any(theme_item.get("policy_sources") for theme_item in theme.get("themes", []) if isinstance(theme_item, dict)):
+        present = True
+        evidence.append("theme_chain.policy_sources")
+    elif dim_id == "10_valuation" and valuation.get("scores"):
+        present = True
+        evidence.append("valuation_score.scores")
+
+    return present, sorted(set(evidence))
+
+
+def build_research_quality_gates(
+    data_dir: Path,
+    loaded: dict[str, Any],
+    insufficient_data: list[str],
+    proposed_signal: str,
+) -> dict[str, Any]:
+    dimensions = []
+    core_missing: list[str] = []
+    trade_missing: list[str] = []
+    preflight_evidence = [filename for filename in QUALITY_PREFLIGHT_FILES if (data_dir / filename).exists()]
+    preflight = {
+        "id": "0_basic",
+        "label": "Basic profile",
+        "status": "present" if preflight_evidence else "missing",
+        "evidence": preflight_evidence,
+        "core": True,
+        "trade_required": True,
+    }
+    if not preflight_evidence:
+        core_missing.append("0_basic")
+        trade_missing.append("0_basic")
+
+    for dimension in QUALITY_DIMENSIONS:
+        present, evidence = quality_dimension_present(str(dimension["id"]), data_dir, loaded)
+        status = "present" if present else "missing"
+        item = {
+            "id": dimension["id"],
+            "label": dimension["label"],
+            "status": status,
+            "evidence": evidence,
+            "core": bool(dimension["core"]),
+            "trade_required": bool(dimension["trade_required"]),
+        }
+        dimensions.append(item)
+        if not present and dimension["core"]:
+            core_missing.append(str(dimension["id"]))
+        if not present and dimension["trade_required"]:
+            trade_missing.append(str(dimension["id"]))
+
+    if "backtest_summary" in insufficient_data or loaded.get("backtest") is None:
+        trade_missing.append("backtest_summary")
+
+    if "0_basic" in core_missing or "1_financials" in core_missing:
+        max_signal = "no_trade"
+    elif trade_missing:
+        max_signal = "watch"
+    else:
+        max_signal = "add"
+
+    present_count = sum(1 for item in dimensions if item["status"] == "present")
+    return {
+        "methodology": "research_22_dimension_quality_gate",
+        "proposed_signal": proposed_signal,
+        "max_signal_by_quality_gate": max_signal,
+        "present_count": present_count,
+        "total_count": len(dimensions),
+        "coverage_ratio": round(present_count / len(dimensions), 4),
+        "preflight": preflight,
+        "core_missing": sorted(set(core_missing)),
+        "trade_upgrade_missing": sorted(set(trade_missing)),
+        "dimensions": dimensions,
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -278,6 +391,33 @@ def build_signal(args: argparse.Namespace, data_dir: Path) -> tuple[dict[str, An
         signal_name = "watch"
         reason = "综合分达到观察阈值，但交易级条件未全部满足。"
 
+    quality_gates = build_research_quality_gates(
+        data_dir,
+        {
+            "market": market,
+            "collection_status": collection_status,
+            "fundamental": fundamental,
+            "valuation": valuation,
+            "theme": theme,
+            "technical": technical,
+            "backtest": backtest,
+            "scan": scan,
+            "lhb": lhb,
+        },
+        insufficient,
+        signal_name,
+    )
+    if signal_name in {"pilot_build", "add"} and quality_gates.get("max_signal_by_quality_gate") in {"watch", "no_trade"}:
+        previous_signal = signal_name
+        signal_name = str(quality_gates["max_signal_by_quality_gate"])
+        quality_gates["applied_signal_after_gate"] = signal_name
+        reason = (
+            f"research quality gate capped {previous_signal} to {signal_name}; "
+            f"missing: {', '.join(quality_gates.get('trade_upgrade_missing', []))}"
+        )
+    else:
+        quality_gates["applied_signal_after_gate"] = signal_name
+
     suggested_lots = position_lots(args.account_equity, args.risk_per_trade, latest_close, stop_price or 0, args.max_single_stock_weight)
     if signal_name not in {"pilot_build", "add"}:
         suggested_lots = 0
@@ -329,6 +469,7 @@ def build_signal(args: argparse.Namespace, data_dir: Path) -> tuple[dict[str, An
             "references/workflow.md",
             "references/signal-policy.md",
             "references/backtest.md",
+            "references/research-quality-gates.md",
         ],
         "data_sources": [
             str(data_dir / filename)
@@ -351,6 +492,7 @@ def build_signal(args: argparse.Namespace, data_dir: Path) -> tuple[dict[str, An
         "has_bear_case": True,
         "has_backtest_summary": backtest is not None,
         "signal_boundary_ok": signal_name not in {"pilot_build", "add"} or (suggested_lots > 0 and backtest_ok and fundamental_ok and valuation_ok and theme_assessed),
+        "quality_gates": quality_gates,
         "next_review_time": next_review,
         "scores": {
             "fundamental": round(fundamental_score_value, 4),
@@ -375,6 +517,21 @@ def backtest_period_text(backtest: dict[str, Any] | None) -> str:
     start = str(period.get("start") or "")
     end = str(period.get("end") or "")
     return f"{start} to {end}" if start or end else "not_available"
+
+
+def render_quality_gate(audit: dict[str, Any]) -> str:
+    quality = audit.get("quality_gates")
+    if not isinstance(quality, dict):
+        return "- Not available"
+    return "\n".join(
+        [
+            f"- Methodology: {quality.get('methodology')}",
+            f"- Coverage: {quality.get('present_count')}/{quality.get('total_count')} ({quality.get('coverage_ratio')})",
+            f"- Max signal by gate: `{quality.get('max_signal_by_quality_gate')}`",
+            f"- Core missing: {', '.join(quality.get('core_missing', [])) or 'none'}",
+            f"- Trade upgrade missing: {', '.join(quality.get('trade_upgrade_missing', [])) or 'none'}",
+        ]
+    )
 
 
 def render_report(signal: dict[str, Any], audit: dict[str, Any]) -> str:
@@ -425,6 +582,10 @@ def render_report(signal: dict[str, Any], audit: dict[str, Any]) -> str:
 ## Capital Flow / 资金
 
 - Flow score: {scores.get("flow")}
+
+## Research Quality Gate / 22维覆盖
+
+{render_quality_gate(audit)}
 
 ## Bear Case / 反方
 

@@ -30,9 +30,11 @@ You are an A-share investment research agent. Your job is to help with evidence-
 2. Load the required reference files based on the task:
    - Multi-agent role split: `references/agent-roles.md`
    - Full research workflow: `references/workflow.md`
+   - Research coverage and self-review gates: `references/research-quality-gates.md`
    - A-share data fields and sources: `references/a-share-data.md`
    - Signal and risk policy: `references/signal-policy.md`
    - Backtest interpretation: `references/backtest.md`
+   - Chain bottleneck research: `references/chain-bottleneck-research.md`
    - External project mapping: `references/project-map.md`
    - Use `$a-share-data-collector` when structured market/financial/announcement data is missing or needs implementation.
    - Use `$trap-detector` when the stock idea came from social media, private groups, teachers, or guaranteed-return language.
@@ -43,23 +45,26 @@ You are an A-share investment research agent. Your job is to help with evidence-
 5. If `data_context.files.lhb` exists, use it as the first source for Dragon-Tiger/capital-flow evidence; otherwise mark LHB as missing.
 6. If only `financials.json` exists, generate `fundamental_score.json` with `scripts/fundamental_score.py` before finalizing basic quality and risk.
 7. If only `financials.json` and `market_data.json` exist, generate `valuation_score.json` with `scripts/valuation_score.py`; missing market cap, peer data, or history must stay in `insufficient_data`.
-8. If only `announcements.json` exists, generate `theme_chain.json` with `scripts/theme_chain.py`; keyword-only themes are low-confidence and cannot alone justify a trade-level signal.
+8. If only `announcements.json` exists, generate `theme_chain.json` with `scripts/theme_chain.py`; for hot-theme scans, use layer-first chain bottleneck research from `references/chain-bottleneck-research.md` and optional `templates/theme_input.example.json`.
 9. If only `market_data.json` exists, generate a technical snapshot with `scripts/compute_technicals.py` before finalizing technical analysis.
 10. If `data_context.files.backtest_summary` exists, use it as the baseline backtest evidence. If absent, cap `pilot_build` and `add`.
-11. If `data_context.files.parameter_scan` exists, use it to evaluate parameter robustness; if `engine_status=dependency_missing` or `insufficient_data` is non-empty, do not upgrade signals on scan evidence.
-12. For automation, use `scripts/signal_orchestrator.py` to write `report.md`, `signal.json`, and `audit.json` from the prepared data context.
-13. Produce a report using `templates/stock_report.md` when manual analysis is required.
-14. Produce a machine-readable signal using `schemas/signal.schema.json`.
-15. Store/update state using `schemas/analysis_state.schema.json` when building automation.
-16. Validate the signal shape with `scripts/validate_signal.py` when a JSON signal file is created.
+11. Apply research quality gates from `references/research-quality-gates.md`: keep a 22-dimension coverage map, surface data gaps, and cap trade-level signals when core dimensions or trap/backtest evidence are missing.
+12. If `data_context.files.parameter_scan` exists, use it to evaluate parameter robustness; if `engine_status=dependency_missing` or `insufficient_data` is non-empty, do not upgrade signals on scan evidence.
+13. For automation, use `scripts/signal_orchestrator.py` to write `report.md`, `signal.json`, and `audit.json` from the prepared data context.
+14. Produce a report using `templates/stock_report.md` when manual analysis is required.
+15. Produce a machine-readable signal using `schemas/signal.schema.json`.
+16. Store/update state using `schemas/analysis_state.schema.json` when building automation.
+17. Validate the signal shape with `scripts/validate_signal.py` when a JSON signal file is created.
 
 ## Required Analysis Blocks
 
 Always cover:
 
 - Fundamental quality: revenue, profit, cash flow, ROE, margins, debt, receivables, inventory, goodwill, capital actions.
+- Research quality gate: 22-dimension coverage, core missing dimensions, trade-upgrade blockers, data-gap acknowledgement.
 - Valuation: historical percentile, peer comparison, scenario valuation, valuation compression risk.
 - Theme and industry chain: policy/theme -> industry segment -> company exposure -> revenue/profit transmission -> evidence.
+- Chain bottleneck scan: system change -> scarce layers -> candidate universe -> priority research list -> fund direction -> next checks.
 - Technical setup: trend, moving averages, volume/amount, MACD/RSI/KDJ/BOLL, ATR, relative strength.
 - Support/resistance: price level, source, trigger mode, invalidation, action.
 - Capital flow: turnover, amount, margin financing, Dragon-Tiger list, institutional/trader clues.
@@ -104,6 +109,7 @@ python skills/a-share-data-collector/scripts/collect_snapshot.py 300750.SZ --nam
 python skills/a-share-investment-research/scripts/fundamental_score.py data/raw/300750.SZ/financials.json
 python skills/a-share-investment-research/scripts/valuation_score.py data/raw/300750.SZ/financials.json --market-data data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json
+python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json --theme-input skills/a-share-investment-research/templates/theme_input.example.json
 python skills/a-share-investment-research/scripts/compute_technicals.py data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/backtest_signal.py data/raw/300750.SZ/market_data.json --rule breakout
 python skills/a-share-investment-research/scripts/vectorbt_scan.py data/raw/300750.SZ/market_data.json --rule breakout

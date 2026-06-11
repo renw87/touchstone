@@ -20,6 +20,12 @@ Build profile:
 
 If a no-trade gate is active, stop and write a risk report.
 
+Choose depth before collecting optional data:
+
+- `quick`: first-pass pruning. Output only `no_trade` or `watch`.
+- `standard`: normal single-stock research with deterministic scores, backtest, and conditional signal.
+- `deep`: build/add candidate review with 22-dimension coverage, qualitative gap review, investor-panel debate, and self-review gate.
+
 ## 2. Evidence Collection
 
 Collect in priority:
@@ -41,12 +47,19 @@ Run:
 - Fundamental quality.
 - Valuation.
 - Theme and industry-chain transmission.
+- Chain bottleneck scan: rank scarce layers before ranking companies or fund directions.
 - Technical setup.
 - Support/resistance.
 - Capital flow.
 - Bear case.
 
 Each block must produce score, evidence, doubt, and invalidation trigger.
+
+Apply `references/research-quality-gates.md` here:
+
+- Maintain the 22-dimension coverage map even when a dimension is missing.
+- Mark fallback, stale, low-quality, or unverified dimensions explicitly.
+- For `deep`, review the weakest or most thesis-critical dimensions with agent judgment instead of copying script output.
 
 ## 4. Convert Thesis To Rules
 
@@ -76,10 +89,17 @@ If backtest quality is weak, cap the signal at `watch`.
 The orchestrator combines:
 
 - research layer: fundamentals, valuation, theme, risk.
+- chain layer: system change, scarce layer, bottleneck score, candidate research priority.
 - execution layer: technical setup, support/resistance, flow.
 - risk layer: position size, stop, take-profit, backtest, market regime.
 
 Output a conditional signal only.
+
+Before upgrading beyond `watch`, require:
+
+- no missing core dimensions: basic profile, financials, K-line, valuation, events, trap scan, and backtest summary.
+- a visible bear case and invalidation trigger.
+- `audit.quality_gates.max_signal_by_quality_gate` not lower than the proposed signal.
 
 ## 7. Review Cadence
 

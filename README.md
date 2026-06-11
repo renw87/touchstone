@@ -6,7 +6,7 @@
 
 ## 当前主线
 
-当前按 UZI-Skill 风格，仓库根目录就是插件工程根：
+当前仓库根目录就是插件工程根：
 
 - [.codex-plugin/plugin.json](.codex-plugin/plugin.json)：Codex 插件 manifest。
 - [SKILL.md](skills/a-share-investment-research/SKILL.md)：核心 A 股投研 Skill。
@@ -40,6 +40,7 @@ python skills/a-share-data-collector/scripts/collect_snapshot.py 300750.SZ --nam
 python skills/a-share-investment-research/scripts/fundamental_score.py data/raw/300750.SZ/financials.json
 python skills/a-share-investment-research/scripts/valuation_score.py data/raw/300750.SZ/financials.json --market-data data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json
+python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json --theme-input skills/a-share-investment-research/templates/theme_input.example.json
 python skills/a-share-investment-research/scripts/compute_technicals.py data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/backtest_signal.py data/raw/300750.SZ/market_data.json --rule breakout
 python skills/a-share-investment-research/scripts/vectorbt_scan.py data/raw/300750.SZ/market_data.json --rule breakout
@@ -55,10 +56,12 @@ python harness/runners/evaluate_run.py harness/runs/$(date +%F)/300750.SZ
 1. 输入股票、投资周期、风险偏好、资金约束和已有仓位。
 2. 拉取行情、复权价格、财报、公告、行业、热点、资金流、龙虎榜、指数和同业数据。
 3. 分别完成基本面、估值、热点/产业链、技术面、支撑阻力、资金行为、风险和反方报告。
-4. 将观点转成可验证假设，例如“放量突破 20 日高点且行业强于沪深 300”。
-5. 回测同类信号，记录胜率、盈亏比、最大回撤、失败样本。
-6. 由信号策略层生成条件化提醒，而不是无条件买卖指令。
-7. 每日/每周复盘：证据是否改变、触发条件是否失效、仓位是否超限。
+   热点/产业链采用“先排产业链层级，再排公司和基金方向”的瓶颈研究路径。
+4. 按 22 维研究质量门槛记录覆盖率、核心缺口、交易升级缺口和数据兜底状态。
+5. 将观点转成可验证假设，例如“放量突破 20 日高点且行业强于沪深 300”。
+6. 回测同类信号，记录胜率、盈亏比、最大回撤、失败样本。
+7. 由信号策略层生成条件化提醒，而不是无条件买卖指令。
+8. 每日/每周复盘：证据是否改变、触发条件是否失效、仓位是否超限。
 
 ## 文件说明
 

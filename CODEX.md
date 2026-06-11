@@ -1,6 +1,6 @@
 # Touchstone — Codex Project Map
 
-**Touchstone** is an evidence-based A-share investment research Skill/Plugin plus Harness, modeled after UZI-Skill's root-level layout.
+**Touchstone** is an evidence-based A-share investment research Skill/Plugin plus Harness.
 
 ## First 60 Seconds
 
@@ -8,6 +8,7 @@
 2. Primary Skill: `skills/a-share-investment-research/SKILL.md`.
 3. Harness runner: `python run.py <symbol> --name <name>`.
 4. Harness records live under `harness/runs/{date}/{symbol}/`.
+5. Research quality gates live in `skills/a-share-investment-research/references/research-quality-gates.md` and are written to `audit.json`.
 
 ## Directory Map
 
@@ -31,6 +32,7 @@ python skills/a-share-data-collector/scripts/collect_snapshot.py 300750.SZ --nam
 python skills/a-share-investment-research/scripts/fundamental_score.py data/raw/300750.SZ/financials.json
 python skills/a-share-investment-research/scripts/valuation_score.py data/raw/300750.SZ/financials.json --market-data data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json
+python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json --theme-input skills/a-share-investment-research/templates/theme_input.example.json
 python skills/a-share-investment-research/scripts/compute_technicals.py data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/backtest_signal.py data/raw/300750.SZ/market_data.json --rule breakout
 python skills/a-share-investment-research/scripts/vectorbt_scan.py data/raw/300750.SZ/market_data.json --rule breakout
@@ -41,4 +43,4 @@ python skills/a-share-investment-research/scripts/validate_signal.py harness/exa
 
 ## Signal Boundary
 
-All outputs are research assistance only. No unconditional buy/sell/full-position language. Any `pilot_build` or `add` signal must include trigger, stop, position limit, take-profit plan, evidence, bear case, and backtest summary.
+All outputs are research assistance only. No unconditional buy/sell/full-position language. Any `pilot_build` or `add` signal must include trigger, stop, position limit, take-profit plan, evidence, bear case, backtest summary, and a passing research quality gate.

@@ -5,6 +5,7 @@ Use `$a-share-investment-research` to run a full A-share stock analysis.
 Required user inputs:
 
 - symbol and name.
+- depth: quick, standard, or deep. Default to standard; use deep before `pilot_build` or `add`.
 - horizon: short, swing, medium, long.
 - risk style: conservative, balanced, aggressive.
 - account equity, max single-stock weight, risk per trade.
@@ -14,7 +15,7 @@ Output:
 
 - full report using `skills/a-share-investment-research/templates/stock_report.md`.
 - conditional signal using `skills/a-share-investment-research/schemas/signal.schema.json`.
-- audit notes covering data gaps, evidence, no-trade gates, bear case, backtest, and next review.
+- audit notes covering data gaps, 22-dimension research coverage, evidence, no-trade gates, bear case, backtest, and next review.
 
 Deterministic script chain:
 
@@ -23,6 +24,7 @@ python skills/a-share-data-collector/scripts/collect_snapshot.py 300750.SZ --nam
 python skills/a-share-investment-research/scripts/fundamental_score.py data/raw/300750.SZ/financials.json
 python skills/a-share-investment-research/scripts/valuation_score.py data/raw/300750.SZ/financials.json --market-data data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json
+python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json --theme-input skills/a-share-investment-research/templates/theme_input.example.json
 python skills/a-share-investment-research/scripts/compute_technicals.py data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/backtest_signal.py data/raw/300750.SZ/market_data.json --rule breakout
 python skills/a-share-investment-research/scripts/vectorbt_scan.py data/raw/300750.SZ/market_data.json --rule breakout
@@ -33,3 +35,4 @@ python skills/a-share-investment-research/scripts/signal_orchestrator.py 300750.
 Boundary:
 
 - Without credible backtest and sufficient evidence, cap signal at `watch`.
+- Without core dimensions and trap-risk evidence, cap trade-level signals at `watch`.
