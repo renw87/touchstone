@@ -68,6 +68,68 @@ def latest_reports(financials: dict[str, Any]) -> tuple[dict[str, Any], dict[str
     return latest, previous
 
 
+def sorted_reports(financials: dict[str, Any]) -> list[dict[str, Any]]:
+    return sorted(financials.get("reports", []), key=lambda item: str(item.get("report_period", "")))
+
+
+def parse_report_date(report: dict[str, Any]) -> datetime | None:
+    raw = str(report.get("report_period", "") or report.get("REPORT_DATE", "") or report.get("REPORTDATE", ""))
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(raw[:10], fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def find_report_by_period(reports: list[dict[str, Any]], year: int, month: int, day: int) -> dict[str, Any]:
+    matches: list[tuple[str, dict[str, Any]]] = []
+    for report in reports:
+        report_date = parse_report_date(report)
+        if report_date is None:
+            continue
+        if report_date.year == year and report_date.month == month and report_date.day == day:
+            matches.append((str(report.get("report_period", "")), report))
+    return sorted(matches, key=lambda item: item[0])[-1][1] if matches else {}
+
+
+def find_yoy_report(reports: list[dict[str, Any]], report: dict[str, Any]) -> dict[str, Any]:
+    report_date = parse_report_date(report)
+    if report_date is None:
+        return {}
+    return find_report_by_period(reports, report_date.year - 1, report_date.month, report_date.day)
+
+
+def report_number(report: dict[str, Any], *keys: str) -> float | None:
+    return first_number(*(report.get(key) for key in keys))
+
+
+def trailing_cumulative_value(reports: list[dict[str, Any]], report: dict[str, Any], *keys: str) -> tuple[float | None, str, dict[str, str]]:
+    value = report_number(report, *keys)
+    report_date = parse_report_date(report)
+    if value is None or report_date is None:
+        return None, "missing", {}
+    period = str(report.get("report_period", ""))
+    if report_date.month == 12 and report_date.day == 31:
+        return value, "annual", {"latest": period}
+
+    previous_annual = find_report_by_period(reports, report_date.year - 1, 12, 31)
+    same_period_last_year = find_yoy_report(reports, report)
+    previous_annual_value = report_number(previous_annual, *keys)
+    same_period_last_year_value = report_number(same_period_last_year, *keys)
+    if previous_annual_value is None or same_period_last_year_value is None:
+        return value, "latest_period_fallback", {"latest": period}
+    return (
+        previous_annual_value + value - same_period_last_year_value,
+        "ttm_from_cumulative",
+        {
+            "latest": period,
+            "previous_annual": str(previous_annual.get("report_period", "")),
+            "same_period_last_year": str(same_period_last_year.get("report_period", "")),
+        },
+    )
+
+
 def growth(latest: float | None, previous: float | None) -> float | None:
     if latest is None or previous is None or previous == 0:
         return None
@@ -128,7 +190,8 @@ def score_valuation(args: argparse.Namespace) -> dict[str, Any]:
     peers = read_json(peer_path)
     history = read_json(history_path)
 
-    latest, previous = latest_reports(financials)
+    reports = sorted_reports(financials)
+    latest, _previous = latest_reports(financials)
     insufficient: list[str] = []
     components: list[dict[str, Any]] = []
     evidence: list[str] = []
@@ -144,10 +207,11 @@ def score_valuation(args: argparse.Namespace) -> dict[str, Any]:
     )
     float_market_cap = first_number(args.float_market_cap, valuation_input.get("float_market_cap"))
 
-    revenue = first_number(latest.get("revenue"), latest.get("operating_revenue"))
-    previous_revenue = first_number(previous.get("revenue"), previous.get("operating_revenue"))
-    profit = first_number(latest.get("net_profit_parent"), latest.get("net_profit"))
-    previous_profit = first_number(previous.get("net_profit_parent"), previous.get("net_profit"))
+    revenue, revenue_basis, revenue_sources = trailing_cumulative_value(reports, latest, "revenue", "operating_revenue")
+    profit, profit_basis, profit_sources = trailing_cumulative_value(reports, latest, "net_profit_parent", "net_profit")
+    previous_comparable = find_yoy_report(reports, latest)
+    previous_revenue, previous_revenue_basis, _ = trailing_cumulative_value(reports, previous_comparable, "revenue", "operating_revenue")
+    previous_profit, previous_profit_basis, _ = trailing_cumulative_value(reports, previous_comparable, "net_profit_parent", "net_profit")
     equity = first_number(
         latest.get("shareholder_equity_parent"),
         latest.get("shareholder_equity"),
@@ -159,6 +223,12 @@ def score_valuation(args: argparse.Namespace) -> dict[str, Any]:
 
     if not latest:
         insufficient.append("financials.reports")
+    if revenue_basis == "latest_period_fallback":
+        insufficient.append("revenue_ttm")
+        warnings.append("缺少完整 TTM 营收构造数据，PS 暂用最新报告期累计营收。")
+    if profit_basis == "latest_period_fallback":
+        insufficient.append("profit_ttm")
+        warnings.append("缺少完整 TTM 利润构造数据，PE 暂用最新报告期累计净利。")
     if price is None:
         insufficient.append("latest_price")
     if market_cap is None:
@@ -272,6 +342,10 @@ def score_valuation(args: argparse.Namespace) -> dict[str, Any]:
 
     if market_cap is not None and price is not None:
         evidence.append(f"估值输入：价格 {price:.4f}，市值 {market_cap:.4f}。")
+    if profit is not None:
+        evidence.append(f"净利口径：{profit_basis}，金额 {profit:.4f}。")
+    if revenue is not None:
+        evidence.append(f"营收口径：{revenue_basis}，金额 {revenue:.4f}。")
     if pe is not None:
         evidence.append(f"PE {pe:.2f}")
     if pb is not None:
@@ -309,6 +383,14 @@ def score_valuation(args: argparse.Namespace) -> dict[str, Any]:
             "pb": pb,
             "ps": ps,
             "peg": peg,
+            "revenue_basis": revenue_basis,
+            "profit_basis": profit_basis,
+            "revenue_sources": revenue_sources,
+            "profit_sources": profit_sources,
+            "revenue_ttm": revenue if revenue_basis == "ttm_from_cumulative" else None,
+            "net_profit_ttm": profit if profit_basis == "ttm_from_cumulative" else None,
+            "previous_revenue_basis": previous_revenue_basis,
+            "previous_profit_basis": previous_profit_basis,
             "revenue_growth": revenue_growth,
             "profit_growth": profit_growth,
             "peer_medians": peer_medians,
