@@ -4,6 +4,128 @@
 
 **Touchstone** 是一套可移植到 Codex、Claude Code、Cursor 等编码智能体的 A 股投研协议和插件包。目标不是让智能体直接替你买卖，而是让它围绕指定股票持续做证据化分析，并在满足预设条件时输出“候选建仓、加仓、止盈、止损、观望”等提醒。
 
+## 安装
+
+Touchstone 仓库根即插件工程根，按使用环境选择安装方式。
+
+### Claude Code
+
+**方式一 · 整包插件（推荐，一键）**
+
+```text
+/plugin marketplace add renw87/touchstone
+/plugin install touchstone@touchstone
+```
+
+安装后自动加载全部 skills、commands 和 investment-committee agent。
+
+**方式二 · 只装核心 Skill**
+
+```powershell
+# Windows
+Copy-Item -Recurse skills\a-share-investment-research $HOME\.claude\skills\
+```
+
+```bash
+# macOS / Linux
+cp -r skills/a-share-investment-research ~/.claude/skills/
+```
+
+> 单独安装 Skill 时，Skill 目录内的 `scripts/`、`references/` 会一并带上，可做对话式投研；但仓库根的 `harness/` 自动化编排层不在 Skill 内，需要完整克隆仓库才能用。
+
+### Codex
+
+仓库本身是合法的 root-level Codex 插件（已通过 `validate_plugin.py` 校验），manifest 为 [.codex-plugin/plugin.json](.codex-plugin/plugin.json)。按你的 Codex 环境插件安装方式加载即可。
+
+### Cursor
+
+[.cursor/rules/a-share-investment-research.mdc](.cursor/rules/a-share-investment-research.mdc) 会被 Cursor 自动加载为规则。
+
+### 直接克隆（用脚本自动化）
+
+```bash
+git clone https://github.com/renw87/touchstone.git
+cd touchstone
+pip install -r requirements.txt   # 可选：接真实数据与回测时才需要
+```
+
+## 使用手册
+
+### 环境与依赖
+
+- **Python 3.9+**。
+- **核心脚本零第三方依赖**（仅标准库）：用自备数据或 `--provider empty` 即可跑通「采集 → 评分 → 编排 → 评测」全链路。
+- **接真实数据 / 回测**需安装：`pip install akshare pandas numpy vectorbt`。
+- 可选增强：`tushare`、`baostock`（备用数据源）、`duckdb`（本地存储）。
+
+### 快速开始
+
+**模式一 · 对话式**（在 Claude Code / Codex / Cursor 内直接对智能体说）
+
+```text
+用 $a-share-investment-research 分析宁德时代 300750.SZ。
+周期 swing，风险 balanced，账户权益 100000，当前无持仓。
+输出完整报告和条件化信号。
+```
+
+**模式二 · 脚本自动化**（确定性骨架，可被任意智能体或 CI 调用）
+
+```bash
+# 1) 采集数据（真实行情走 akshare；离线骨架用 --provider empty）
+python skills/a-share-data-collector/scripts/collect_snapshot.py 300750.SZ --name 宁德时代 --provider akshare
+
+# 2) 一键编排：读取数据 → 基本面/估值/技术面/主题/回测 → 生成信号
+python skills/a-share-investment-research/scripts/signal_orchestrator.py 300750.SZ --name 宁德时代
+
+# 3) 评测是否越过信号边界
+python harness/runners/evaluate_run.py harness/runs/<日期>/300750.SZ
+```
+
+产物写入 `harness/runs/<日期>/<symbol>/`：`report.md`、`signal.json`、`audit.json`。`<日期>` 为运行当天，例如 `harness/runs/2026-06-11/300750.SZ`。
+
+### 信号解读
+
+`signal.json` 的 `signal` 字段只取以下 9 个值：
+
+| 信号 | 含义 |
+|------|------|
+| `no_trade` | 数据不足或触发禁入，不操作 |
+| `watch` | 观察，未达交易级条件 |
+| `pilot_build` | 满足条件的试探建仓（需触发条件 / 止损 / 回测齐全）|
+| `add` | 加仓（需已有盈利 + 新证据）|
+| `hold` | 持有 |
+| `take_profit_partial` / `take_profit_full` | 部分 / 全部止盈 |
+| `stop_loss` | 止损 |
+| `exit_risk` | 风险退出 |
+
+每条信号都附带 `trigger_condition`、`stop_condition`、`take_profit_plan`、`position_limit`、`evidence`、`bear_case`、`backtest_summary` 和 `disclaimer`。
+
+> **关键边界**：缺少财报、行情或回测证据时，信号**最高只能到 `watch`**，不会升级到 `pilot_build` / `add`。
+
+### 配置
+
+`harness/configs/` 下的个人配置（`user_profile.yaml`、`watchlist.yaml` 含资金量与自选股，已被 `.gitignore`，请从 `*.example.yaml` 复制后填写）：
+
+| 文件 | 作用 |
+|------|------|
+| `user_profile.yaml` | 资金量、风险偏好、单票 / 行业上限、单笔风险 |
+| `watchlist.yaml` | 自选股池 |
+| `alert_rules.yaml` | 各信号的评分阈值与触发时间 |
+
+首次使用：
+
+```bash
+cp harness/configs/user_profile.example.yaml harness/configs/user_profile.yaml
+cp harness/configs/watchlist.example.yaml   harness/configs/watchlist.yaml
+```
+
+### 已知限制与排错
+
+- **akshare 财报 / 龙虎榜接口随版本变动**：部分接口（如 `stock_lhb_detail_em`）签名已变，`financials`、`lhb` 可能采集为空。系统会标记 `insufficient_data` 并把信号 cap 在 `watch` / `no_trade`（不会瞎编）。需要完整基本面时，升级脚本以适配新版 akshare API，或接入 Tushare / 巨潮资讯作为财报源。
+- **行情数据正常**：akshare 日线行情可用（实测可拉取约 589 根 K 线），技术面与 baseline 回测可正常运行。
+- **Windows 控制台中文乱码**：执行前设 `set PYTHONUTF8=1`（或 `chcp 65001`）；产物文件本身为正确 UTF-8。
+- **信号不升级**：缺财报或回测时无法到 `pilot_build` / `add` 属预期设计，非 bug。
+
 ## 当前主线
 
 当前仓库根目录就是插件工程根：
