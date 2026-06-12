@@ -336,9 +336,15 @@ def build_signal(args: argparse.Namespace, data_dir: Path) -> tuple[dict[str, An
     total_score = fundamental_score_value + risk_score_value + tech_score + bt_score + flow_score_value + valuation_score_value + theme_score_value
 
     insufficient = []
-    if market is None:
+    # market_data: trust the actual file (non-empty bars), not a possibly-stale
+    # collection_status — the snapshot may have been backfilled after a failed fetch.
+    if not (market and market.get("bars")):
         insufficient.append("market_data")
-    insufficient.extend((collection_status or {}).get("insufficient_data", []))
+    # collection_status is advisory; drop the keys we verify directly from real
+    # files (market_data here, financials via fundamental_score below) so a stale
+    # status can't force a false no_trade.
+    cs_insufficient = [x for x in (collection_status or {}).get("insufficient_data", []) if x not in ("market_data", "financials")]
+    insufficient.extend(cs_insufficient)
     insufficient.extend((fundamental or {}).get("insufficient_data", []) if fundamental else ["financials", "fundamental_score"])
     insufficient.extend(valuation_missing)
     insufficient.extend(theme_missing)
