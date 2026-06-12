@@ -19,6 +19,22 @@ Supported rules:
 
 Guidance: prefer `trend_follow` when drawdown control matters or for quality uptrending names; `breakout` can still catch counter-trend rebounds in weak names. Keep both; pick by the stock's regime.
 
+## Quality Gate (point-in-time fundamental filter)
+
+`--quality-gate --financials <financials.json>` only lets a signal fire when the
+**point-in-time** fundamentals — the latest report published by
+`report_period + --fund-lag-days` (default 90d) — are profitable and ROE ≥
+`--min-roe`. No look-ahead: a report is only visible after its approximate
+publish date.
+
+Backtest on the same basket (`trend_follow` ± gate):
+
+- **Precise avoidance**: 隆基 (loss-making downcycle) was fully filtered (4 trades → 0); zero误伤 on the four profitable names (trade counts unchanged).
+- **Value is risk-avoidance, not extra return**: on a hand-picked blue-chip basket the effect is tiny (avg +23%→+23%, drawdown 12%→11%) because the basket already holds only one weak name. The real payoff shows when **screening a wide universe** — it blocks ST / chronically loss-making / fake-growth names outright.
+- **It does NOT fix timing losses on profitable-but-ranging names** (茅台 stays -18%): the gate judges "is the company sound", not "is the price level / trend good". Pair it with trend filters; don't expect it to do their job.
+
+"Quality + trend" are orthogonal layers: the gate decides *whether to touch the name*, `trend_follow` decides *when to enter/exit*.
+
 Execution assumptions:
 
 - signal is observed at close.

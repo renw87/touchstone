@@ -28,6 +28,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--trail-pct", type=float, default=0.12, help="trend_follow trailing stop: exit when close falls this far below the in-trade peak")
     parser.add_argument("--trend-window", type=int, default=60, help="trend_follow entry filter: only enter when close is above this MA")
     parser.add_argument("--cost-bps", type=float, default=15.0, help="Round-trip cost in bps")
+    parser.add_argument("--financials", default=None, help="Path to financials.json for the point-in-time quality gate")
+    parser.add_argument("--quality-gate", action="store_true", help="Only enter when point-in-time fundamentals pass (profitable + ROE >= --min-roe)")
+    parser.add_argument("--min-roe", type=float, default=3.0, help="Minimum ROE (quality gate)")
+    parser.add_argument("--fund-lag-days", type=int, default=90, help="Days after report_period before a report counts as published (avoids look-ahead)")
     parser.add_argument("--out-dir", default=None, help="Output directory. Defaults next to market_data.json")
     return parser.parse_args()
 
@@ -112,11 +116,58 @@ def max_drawdown(equity: list[float]) -> float:
     return abs(worst)
 
 
+def available_fundamentals(reports: list[dict[str, Any]], as_of_str: Any, lag_days: int) -> dict[str, Any] | None:
+    """Latest report published on/before as_of (report_period + lag_days).
+
+    Point-in-time: never uses a report that would not yet have been public on
+    the signal date, so the quality gate carries no look-ahead bias.
+    """
+    from datetime import timedelta
+    try:
+        as_of = datetime.strptime(str(as_of_str)[:10].replace("/", "-"), "%Y-%m-%d").date()
+    except ValueError:
+        return None
+    avail: list[tuple[str, dict[str, Any]]] = []
+    for r in reports:
+        p = str(r.get("report_period", ""))
+        if len(p) != 8 or not p.isdigit():
+            continue
+        try:
+            published = datetime.strptime(p, "%Y%m%d").date() + timedelta(days=lag_days)
+        except ValueError:
+            continue
+        if published <= as_of:
+            avail.append((p, r))
+    if not avail:
+        return None
+    avail.sort(key=lambda x: x[0], reverse=True)
+    return avail[0][1]
+
+
+def quality_ok(m: dict[str, Any] | None, min_roe: float) -> bool:
+    if not m:
+        return False
+    npp = m.get("net_profit_parent")
+    if npp is None or npp <= 0:  # must be profitable
+        return False
+    roe = m.get("roe")
+    if roe is not None and roe < min_roe:
+        return False
+    return True
+
+
 def run_backtest(args: argparse.Namespace) -> dict[str, Any]:
     market = json.loads(Path(args.market_data).read_text(encoding="utf-8"))
     bars = sorted(market.get("bars", []), key=lambda item: str(item.get("date", "")))
     closes = [num(bar.get("close")) for bar in bars]
     amounts = [num(bar.get("amount")) for bar in bars]
+
+    fund_reports: list[dict[str, Any]] = []
+    if args.quality_gate and args.financials:
+        try:
+            fund_reports = json.loads(Path(args.financials).read_text(encoding="utf-8")).get("reports", [])
+        except Exception:  # noqa: BLE001 - missing financials just disables the gate
+            fund_reports = []
 
     insufficient: list[str] = []
     min_bars = max(args.long_window, args.lookback) + 2
@@ -178,6 +229,12 @@ def run_backtest(args: argparse.Namespace) -> dict[str, Any]:
                 pending_entry = signal_trend_follow(bars, closes, amounts, i, args.lookback, args.amount_multiplier, args.trend_window)
             else:
                 pending_entry = signal_breakout(bars, closes, amounts, i, args.lookback, args.amount_multiplier)
+            # Point-in-time quality gate: only act on the signal if fundamentals
+            # known as of this bar pass (profitable + ROE). Filters weak/loss names.
+            if pending_entry and args.quality_gate:
+                m = available_fundamentals(fund_reports, bars[i].get("date"), args.fund_lag_days)
+                if not quality_ok(m, args.min_roe):
+                    pending_entry = False
 
     wins = [trade for trade in trades if trade["return_pct"] > 0]
     losses = [trade for trade in trades if trade["return_pct"] <= 0]
@@ -202,6 +259,8 @@ def run_backtest(args: argparse.Namespace) -> dict[str, Any]:
             "take_profit_pct": args.take_profit_pct,
             "trail_pct": args.trail_pct,
             "trend_window": args.trend_window,
+            "quality_gate": args.quality_gate,
+            "min_roe": args.min_roe if args.quality_gate else None,
             "cost_bps": args.cost_bps,
             "execution": "signal_on_close_enter_next_open_exit_close_t_plus_1_approx",
         },
