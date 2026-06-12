@@ -17,7 +17,7 @@ from typing import Any
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Backtest a simple signal rule.")
     parser.add_argument("market_data", help="Path to market_data.json")
-    parser.add_argument("--rule", choices=["ma_cross", "breakout"], default="breakout")
+    parser.add_argument("--rule", choices=["ma_cross", "breakout", "trend_follow"], default="breakout")
     parser.add_argument("--short-window", type=int, default=20)
     parser.add_argument("--long-window", type=int, default=60)
     parser.add_argument("--lookback", type=int, default=60)
@@ -25,6 +25,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-hold-days", type=int, default=20)
     parser.add_argument("--stop-loss-pct", type=float, default=0.08)
     parser.add_argument("--take-profit-pct", type=float, default=0.16)
+    parser.add_argument("--trail-pct", type=float, default=0.12, help="trend_follow trailing stop: exit when close falls this far below the in-trade peak")
+    parser.add_argument("--trend-window", type=int, default=60, help="trend_follow entry filter: only enter when close is above this MA")
     parser.add_argument("--cost-bps", type=float, default=15.0, help="Round-trip cost in bps")
     parser.add_argument("--out-dir", default=None, help="Output directory. Defaults next to market_data.json")
     return parser.parse_args()
@@ -86,6 +88,20 @@ def exit_breakout(closes: list[float], i: int) -> bool:
     return bool(ma20 is not None and closes[i] < ma20)
 
 
+def signal_trend_follow(bars: list[dict[str, Any]], closes: list[float], amounts: list[float], i: int, lookback: int, amount_multiplier: float, trend_window: int) -> bool:
+    """Breakout that only fires when price is above the long-term trend MA.
+
+    Filters out false breakouts in down/weak names. Paired with a trailing-stop
+    exit so winners in a genuine uptrend are allowed to run instead of being
+    capped at a fixed take-profit (the main reason fixed-target breakout
+    underperforms buy-and-hold in strong bull markets).
+    """
+    if not signal_breakout(bars, closes, amounts, i, lookback, amount_multiplier):
+        return False
+    ma_trend = sma(closes, trend_window, i)
+    return ma_trend is not None and closes[i] > ma_trend
+
+
 def max_drawdown(equity: list[float]) -> float:
     peak = equity[0] if equity else 1.0
     worst = 0.0
@@ -116,21 +132,31 @@ def run_backtest(args: argparse.Namespace) -> dict[str, Any]:
     for i in range(len(bars)):
         if pending_entry and position is None and i < len(bars):
             entry_price = num(bars[i].get("open")) or closes[i]
-            position = {"entry_index": i, "entry_date": bars[i].get("date"), "entry_price": entry_price}
+            position = {"entry_index": i, "entry_date": bars[i].get("date"), "entry_price": entry_price, "peak": entry_price}
             pending_entry = False
 
         if position is not None and i > position["entry_index"]:
             entry_price = position["entry_price"]
             close = closes[i]
+            high = num(bars[i].get("high")) or close
             held_days = i - position["entry_index"]
+            position["peak"] = max(position.get("peak", entry_price), high)
             stop_hit = close <= entry_price * (1 - args.stop_loss_pct)
-            take_profit_hit = close >= entry_price * (1 + args.take_profit_pct)
-            time_exit = held_days >= args.max_hold_days
-            rule_exit = exit_ma_cross(closes, i, args.short_window, args.long_window) if args.rule == "ma_cross" else exit_breakout(closes, i)
-            if stop_hit or take_profit_hit or time_exit or rule_exit:
+            if args.rule == "trend_follow":
+                # Let winners run: exit only on hard stop, trailing stop, or trend break (MA20).
+                trail_hit = close <= position["peak"] * (1 - args.trail_pct)
+                ma_break = exit_breakout(closes, i)
+                should_exit = stop_hit or trail_hit or ma_break
+                reason = "stop_loss" if stop_hit else "trailing_stop" if trail_hit else "ma_break"
+            else:
+                take_profit_hit = close >= entry_price * (1 + args.take_profit_pct)
+                time_exit = held_days >= args.max_hold_days
+                rule_exit = exit_ma_cross(closes, i, args.short_window, args.long_window) if args.rule == "ma_cross" else exit_breakout(closes, i)
+                should_exit = stop_hit or take_profit_hit or time_exit or rule_exit
+                reason = "stop_loss" if stop_hit else "take_profit" if take_profit_hit else "time_exit" if time_exit else "rule_exit"
+            if should_exit:
                 gross_return = close / entry_price - 1
                 net_return = gross_return - cost
-                reason = "stop_loss" if stop_hit else "take_profit" if take_profit_hit else "time_exit" if time_exit else "rule_exit"
                 trades.append(
                     {
                         "entry_date": position["entry_date"],
@@ -148,6 +174,8 @@ def run_backtest(args: argparse.Namespace) -> dict[str, Any]:
         if position is None and not pending_entry and i < len(bars) - 1:
             if args.rule == "ma_cross":
                 pending_entry = signal_ma_cross(closes, i, args.short_window, args.long_window)
+            elif args.rule == "trend_follow":
+                pending_entry = signal_trend_follow(bars, closes, amounts, i, args.lookback, args.amount_multiplier, args.trend_window)
             else:
                 pending_entry = signal_breakout(bars, closes, amounts, i, args.lookback, args.amount_multiplier)
 
@@ -172,6 +200,8 @@ def run_backtest(args: argparse.Namespace) -> dict[str, Any]:
             "max_hold_days": args.max_hold_days,
             "stop_loss_pct": args.stop_loss_pct,
             "take_profit_pct": args.take_profit_pct,
+            "trail_pct": args.trail_pct,
+            "trend_window": args.trend_window,
             "cost_bps": args.cost_bps,
             "execution": "signal_on_close_enter_next_open_exit_close_t_plus_1_approx",
         },
