@@ -126,6 +126,31 @@ cp harness/configs/watchlist.example.yaml   harness/configs/watchlist.yaml
 - **Windows 控制台中文乱码**：执行前设 `set PYTHONUTF8=1`（或 `chcp 65001`）；产物文件本身为正确 UTF-8。
 - **信号不升级**：缺财报或回测时无法到 `pilot_build` / `add` 属预期设计，非 bug。
 
+### 回测规则
+
+`backtest_signal.py` 支持三种规则：
+
+- `breakout`：放量突破 N 日高，固定止盈 / 时间退出。
+- `trend_follow`：突破 + MA60 趋势确认进场，移动止损 / 跌破 MA20 退出（让利润奔跑，回撤更低）。
+- `ma_cross`：均线金叉。
+
+可叠加 `--quality-gate --financials <financials.json>`：point-in-time 基本面门槛（盈利 + ROE 达标才进场），只在基本面强的票上择时。规则选择与回测结论见 [backtest.md](skills/a-share-investment-research/references/backtest.md)。
+
+### 反思闭环（让系统越用越准）
+
+信号不是产完就结束，而是被登记、回看、沉淀、反哺，形成学习闭环：
+
+```bash
+# 分析前：召回该股 / 该信号类型的历史经验
+python skills/a-share-investment-research/scripts/recall_lessons.py --symbol 300750.SZ
+# 产信号后：登记进台账（记信号日收盘价为收益基准）
+python skills/a-share-investment-research/scripts/journal_signal.py harness/runs/<date>/300750.SZ/signal.json --market-dir data/raw/300750.SZ
+# 到回看期：回看真实收益 / 方向 / alpha，沉淀经验
+python skills/a-share-investment-research/scripts/reflect_signal.py --benchmark-dir data/raw/_csi300
+```
+
+信号台账与经验记录在 `harness/journal/`（个人数据，已 gitignore，仅本地）。详见 [reflection-loop.md](skills/a-share-investment-research/references/reflection-loop.md)。
+
 ## 当前主线
 
 当前仓库根目录就是插件工程根：

@@ -35,10 +35,15 @@ python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750
 python skills/a-share-investment-research/scripts/theme_chain.py data/raw/300750.SZ/announcements.json --theme-input skills/a-share-investment-research/templates/theme_input.example.json
 python skills/a-share-investment-research/scripts/compute_technicals.py data/raw/300750.SZ/market_data.json
 python skills/a-share-investment-research/scripts/backtest_signal.py data/raw/300750.SZ/market_data.json --rule breakout
+python skills/a-share-investment-research/scripts/backtest_signal.py data/raw/300750.SZ/market_data.json --rule trend_follow --financials data/raw/300750.SZ/financials.json --quality-gate
 python skills/a-share-investment-research/scripts/vectorbt_scan.py data/raw/300750.SZ/market_data.json --rule breakout
 python skills/a-share-investment-research/scripts/signal_orchestrator.py 300750.SZ --name 宁德时代
 python harness/runners/evaluate_run.py harness/examples/complete_run
 python skills/a-share-investment-research/scripts/validate_signal.py harness/examples/complete_run/signal.json
+# Reflection loop · learn from past signals (recall before, journal after, reflect when due)
+python skills/a-share-investment-research/scripts/recall_lessons.py --symbol 300750.SZ
+python skills/a-share-investment-research/scripts/journal_signal.py harness/runs/<date>/300750.SZ/signal.json --market-dir data/raw/300750.SZ
+python skills/a-share-investment-research/scripts/reflect_signal.py
 ```
 
 ## Signal Boundary
