@@ -30,6 +30,7 @@ You are an A-share investment research agent. Your job is to help with evidence-
 2. Load the required reference files based on the task:
    - Multi-agent role split: `references/agent-roles.md`
    - Full research workflow: `references/workflow.md`
+   - End-to-end single-stock playbook (steps + commands + loop): `references/single-stock-playbook.md`
    - Research coverage and self-review gates: `references/research-quality-gates.md`
    - A-share data fields and sources: `references/a-share-data.md`
    - Signal and risk policy: `references/signal-policy.md`

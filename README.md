@@ -157,6 +157,7 @@ python skills/a-share-investment-research/scripts/reflect_signal.py --benchmark-
 
 - [.codex-plugin/plugin.json](.codex-plugin/plugin.json)：Codex 插件 manifest。
 - [SKILL.md](skills/a-share-investment-research/SKILL.md)：核心 A 股投研 Skill。
+- [single-stock-playbook.md](skills/a-share-investment-research/references/single-stock-playbook.md)：单股分析端到端流程（0→8 步 + 命令 + 闭环）。
 - [CLAUDE.md](CLAUDE.md)：Claude Code 兼容入口。
 - [CODEX.md](CODEX.md)：Codex 项目地图。
 - [a-share-investment-research.mdc](.cursor/rules/a-share-investment-research.mdc)：Cursor 规则入口。
